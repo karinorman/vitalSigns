@@ -14,7 +14,7 @@ pointrastcheck <- function(pt, rast){
   if (check == TRUE){
     return(TRUE)
   }else {
-    return
+    return(FALSE)
   }
 }
 
@@ -38,14 +38,16 @@ calcSpStats <- function(d, ## buffer RADIUS
   for(i in 1:nplot){
     for(j in 1:length(d)){
       these.coord <- coordinates(plt[i, ])
-      p <- spatstat:::disc(d[j], these.coord)
-      p <- as(p, 'SpatialPolygons')
-      proj4string(p) <- CRS(proj4string(plt))
-      ## masking is more time intensive on larger
-      ## rasters so crop first
-      new.rast <- crop(rast, extent(p))
-      new.rast <- mask(new.rast, p)
-      spStats[[i]][[j]] <- FUN(new.rast)
+      if (pointrastcheck(these.coord, rast) == TRUE){
+        p <- spatstat:::disc(d[j], these.coord)
+        p <- as(p, 'SpatialPolygons')
+        proj4string(p) <- CRS(proj4string(plt))
+        ## masking is more time intensive on larger
+        ## rasters so crop first
+        new.rast <- crop(rast, extent(p))
+        new.rast <- mask(new.rast, p)
+        spStats[[i]][[j]] <- FUN(new.rast)
+      }
     }
   }
   if(giv.names){
