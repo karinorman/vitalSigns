@@ -5,6 +5,19 @@ library(maptools)
 library(SDMTools)
 library(rgdal)
 
+## check if center of polygon is in raster extent
+pointrastcheck <- function(pt, rast){
+  ptx <- pt[1]
+  pty <- pt[2]
+  rastcord <- bbox(rast)
+  check <- ptx >= rastcord[1,1] & ptx <= rastcord[1,2] & pty >= rastcord[2,1] & pty <= rastcord[2,2]
+  if (check == TRUE){
+    return(TRUE)
+  }else {
+    return
+  }
+}
+
 ## ClassStat is a function from the SDMTools package that calculates the frag stat metrics 
 
 ## creates buffers of a given size, calculates frag stat metrics
@@ -27,7 +40,7 @@ calcSpStats <- function(d, ## buffer RADIUS
       these.coord <- coordinates(plt[i, ])
       p <- spatstat:::disc(d[j], these.coord)
       p <- as(p, 'SpatialPolygons')
-      #proj4string(p) <- CRS(proj4string(sev.poly))
+      proj4string(p) <- CRS(proj4string(plt))
       ## masking is more time intensive on larger
       ## rasters so crop first
       new.rast <- crop(rast, extent(p))
@@ -49,4 +62,4 @@ summary(farm)
 tanz <- readGDAL("landscape_data/tanzania_landcover/tz_tm1-57palglobdem_prob.dat") 
 plot(tanz)
 
-
+calcSpStats(d = 10, plt = farm, nplot =  26, rast =  tanz, file.name =  tanz_stats)
