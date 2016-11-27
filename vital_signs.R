@@ -68,3 +68,24 @@ calcSpStats(d = 10, plt = farm, nplot =  26, rast =  tanz, file.name =  tanz_sta
 
 test.farm <- farm[farm$cartodb_id == 13,]
 test <- calcSpStats(d = 10, plt = test.farm, nplot =  1, rast =  tanz, file.name = 'tanz_stats', plot = 'name')
+
+## map shapefile
+library(RColorBrewer)
+colors <- brewer.pal(9, "BuGn")
+library(ggmap)
+mapImage <- get_map(location = c(lon = 35, lat = -6),
+                    color = "color",
+                    source = "osm",
+                    # maptype = "terrain",
+                    zoom = 6)
+landscape <- fortify(tanz.farm)
+ggmap(mapImage) +
+  geom_polygon(aes(x = long,
+                   y = lat,
+                   group = group),
+               data = landscape,
+               color = colors[9],
+               fill = colors[6],
+               alpha = 0.5) +
+  labs(x = "Longitude",
+       y = "Latitude")
