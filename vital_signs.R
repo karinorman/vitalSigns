@@ -38,30 +38,33 @@ calcSpStats <- function(d, ## buffer RADIUS
   for(i in 1:nplot){
     for(j in 1:length(d)){
       these.coord <- coordinates(plt[i, ])
-      if (pointrastcheck(these.coord, rast) == TRUE){
-        p <- spatstat:::disc(d[j], these.coord)
-        p <- as(p, 'SpatialPolygons')
-        proj4string(p) <- CRS(proj4string(plt))
-        ## masking is more time intensive on larger
-        ## rasters so crop first
-        new.rast <- crop(rast, extent(p))
-        new.rast <- mask(new.rast, p)
-        spStats[[i]][[j]] <- FUN(new.rast)
-      }
+      p <- spatstat:::disc(d[j], these.coord)
+      p <- as(p, 'SpatialPolygons')
+      proj4string(p) <- CRS(proj4string(plt))
+      ## masking is more time intensive on larger
+      ## rasters so crop first
+      new.rast <- crop(rast, extent(p))
+      new.rast <- mask(new.rast, p)
+      spStats[[i]][[j]] <- FUN(new.rast)
     }
   }
   if(giv.names){
     names(spStats) <- plt@data[,plot]
   }
-  save(spStats, file=file.path(data.dir, file.name))
+  save(spStats, file=file.name)
   return(spStats)
 }
 
 
 farm <- readOGR("landscape_data/landscapes", "landscapes")
 summary(farm)
+tanz.farm <- farm[farm$cartodb_id >12 & farm$cartodb_id < 21,]
 
 tanz <- readGDAL("landscape_data/tanzania_landcover/tz_tm1-57palglobdem_prob.dat") 
-plot(tanz)
+tanz <- raster(tanz)
 
 calcSpStats(d = 10, plt = farm, nplot =  26, rast =  tanz, file.name =  tanz_stats)
+
+
+test.farm <- farm[farm$cartodb_id == 13,]
+test <- calcSpStats(d = 10, plt = test.farm, nplot =  1, rast =  tanz, file.name = 'tanz_stats', plot = 'name')
