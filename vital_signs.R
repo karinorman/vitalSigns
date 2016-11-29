@@ -33,7 +33,7 @@ calcSpStats <- function(d, ## buffer RADIUS
                         giv.names=TRUE, ## give the output names
                         plot="PLOT", ## name of the column to name
                         ## output with
-                        data.dir){ ## directory to save the sata in
+                        data.dir,...){ ## directory to save the sata in
   spStats <- vector("list", length=nplot)
   for(i in 1:nplot){
     for(j in 1:length(d)){
@@ -45,7 +45,7 @@ calcSpStats <- function(d, ## buffer RADIUS
       ## rasters so crop first
       new.rast <- crop(rast, extent(p))
       new.rast <- mask(new.rast, p)
-      spStats[[i]][[j]] <- FUN(new.rast)
+      spStats[[i]][[j]] <- FUN(new.rast, ...)
     }
   }
   if(giv.names){
@@ -56,18 +56,63 @@ calcSpStats <- function(d, ## buffer RADIUS
 }
 
 
-farm <- readOGR("landscape_data/landscapes", "landscapes")
+
+## creates buffers of a given size, calculates frag stat metrics
+calcSpStats <- function(i,
+                        d, ## buffer RADIUS
+                        plt, ## plot data
+                        rast, ## raster to calculate stats from
+                        # sev.poly, ## spatial file to extract
+                        ## projections from
+                        file.name, ## name of the output file
+                        FUN=ClassStat, ## function for calculating
+                        ## stats on buffers
+                        giv.names=TRUE, ## give the output names
+                        plot="PLOT", ## name of the column to name
+                        ## output with
+                        data.dir,...){ ## directory to save the sata in
+  makeDiffer <- function(j, i){
+    these.coord <- coordinates(plt[i, ])
+    p <- spatstat:::disc(d[j], these.coord)
+    p <- as(p, 'SpatialPolygons')
+    proj4string(p) <- CRS(proj4string(plt))
+    ## masking is more time intensive on larger
+    ## rasters so crop first
+    new.rast <- crop(rast, extent(p))
+    new.rast <- mask(new.rast, p)
+    spStats[[i]][[j]] <- FUN(new.rast, ...)
+  }
+  
+  spStats <- vector("list", length=nplot)
+    lapply(1:length(d), makeDisc, i){
+
+  if(giv.names){
+    names(spStats) <- plt@data[,plot]
+  }
+  save(spStats, file=file.name)
+  return(spStats)
+}
+nplot <- 1
+testlapply <- lapply(1:nplot, calcSpStats, d = 10, 
+                     plt = test.farm, rast =  tanz, 
+                     file.name = 'output/tanz_stats.rdata', plot = 'name')
+
+farm <- readOGR("landscapes_20160927", "landscapes_20160927")
 summary(farm)
 tanz.farm <- farm[farm$cartodb_id >12 & farm$cartodb_id < 21,]
 
-tanz <- readGDAL("landscape_data/tanzania_landcover/tz_tm1-57palglobdem_prob.dat") 
+tanz <- readGDAL("Land_cover.Tanzania/tz_tm1-57palglobdem_landcover.dat") 
 tanz <- raster(tanz)
 
-calcSpStats(d = 10, plt = farm, nplot =  26, rast =  tanz, file.name =  tanz_stats)
+#calcSpStats(d = 10, plt = farm, nplot =  26, rast =  tanz, file.name =  tanz_stats)
 
 
 test.farm <- farm[farm$cartodb_id == 13,]
-test <- calcSpStats(d = 10, plt = test.farm, nplot =  1, rast =  tanz, file.name = 'tanz_stats', plot = 'name')
+test <- calcSpStats(d = 10, plt = test.farm, nplot =  1, rast =  tanz, file.name = 'output/tanz_stats.rdata', plot = 'name')
+
+
+
+
 
 ## map shapefile
 library(RColorBrewer)
