@@ -113,8 +113,8 @@ tanz <- raster(tanz)
 test.farm <- farm[farm$cartodb_id == 13,]
 test <- calcSpStats(d = 10, plt = test.farm, nplot =  1, rast =  tanz, file.name = 'output/tanz_stats.rdata', plot = 'name')
 
-
-testlapply <- lapply(1:nplot, calcSpStats, d = 10, 
+options(cores = 10)
+spstats.tanz <- mclapply(1:nplot, calcSpStats, d = 10, 
                      plt = test.farm, rast =  tanz)
 
 
