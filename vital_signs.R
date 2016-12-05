@@ -33,6 +33,7 @@ calcSpStats <- function(i,
   these.coord <- coordinates(plt[i, ])
   spStats <- vector("list", length=length(d))
   for(j in 1:length(d)){
+    browser()
     p <- spatstat:::disc(d[j], these.coord)
     p <- as(p, 'SpatialPolygons')
     proj4string(p) <- CRS(proj4string(plt))
@@ -84,12 +85,12 @@ testlapply <- lapply(1:1, calcSpStats, d = 10,
                      plt = test.farm, rast =  tanz)
 
 nplot <- length(tanz.farm@polygons)
-buff <- seq(10, 1000, by=100)
-options(cores = 10)
-#spstats.tanz <- mclapply(1:nplot, calcSpStats, d = 10, 
-                         plt = tanz.farm, rast =  tanz)
-#save(spstats.tanz, "output/tanz_stats.rdata")
-spstats.mult.tanz <- mclapply(1:nplot, calcSpStats, d = buff, 
+buff <- seq(10, 1100, by=100)
+options(cores = 8)
+# spstats.tanz <- mclapply(1:nplot, calcSpStats, d = 10,
+# plt = tanz.farm, rast =  tanz)
+# save(spstats.tanz, "output/tanz_stats.rdata")
+spstats.mult.tanz <- mclapply(1:nplot, calcSpStats, d = buff,
                               plt = tanz.farm, rast =  tanz)
 save(spstats.mult.tanz, "output/tanz_stats_mult.rdata")
 
