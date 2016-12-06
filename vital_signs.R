@@ -113,3 +113,17 @@ save(spstats.mult.tanz, "output/tanz_stats_mult.rdata")
 #                alpha = 0.5) +
 #   labs(x = "Longitude",
 #        y = "Latitude")
+
+landscape <- fortify(tanz.farm)
+gplot(tanz) + geom_tile(aes(fill = value)) +
+  facet_wrap(~ variable) +
+  scale_fill_gradient(low = 'white', high = 'blue') +
+  coord_equal() +
+  geom_polygon(aes(x = long,
+            y = lat,
+            group = group),
+            data = landscape,
+            alpha = 0.5) +
+  labs(x = "Longitude",
+      y = "Latitude")
+
