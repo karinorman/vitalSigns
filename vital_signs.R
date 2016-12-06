@@ -81,7 +81,7 @@ tanz <- raster(tanz)
 
 #Test Function
 test.farm <- farm[farm$cartodb_id == 13,]
-testlapply <- lapply(1:1, calcSpStats, d = 10, 
+testlapply <- lapply(1:1, calcSpStats, d = 10,
                      plt = test.farm, rast =  tanz)
 
 nplot <- length(tanz.farm@polygons)
@@ -114,3 +114,17 @@ save(spstats.mult.tanz, "output/tanz_stats_mult.rdata")
 #                alpha = 0.5) +
 #   labs(x = "Longitude",
 #        y = "Latitude")
+
+landscape <- fortify(tanz.farm)
+gplot(tanz) + geom_tile(aes(fill = value)) +
+  facet_wrap(~ variable) +
+  scale_fill_gradient(low = 'white', high = 'blue') +
+  coord_equal() +
+  geom_polygon(aes(x = long,
+            y = lat,
+            group = group),
+            data = landscape,
+            alpha = 0.5) +
+  labs(x = "Longitude",
+      y = "Latitude")
+
