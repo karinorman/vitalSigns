@@ -24,19 +24,19 @@ pointrastcheck <- function(pt, rast){
 ## creates buffers of a given size, calculates frag stat metrics
 calcSpStats <- function(i,
                         d, ## buffer RADIUS
-                        plt, ## plot data
+                        plt, ## plot csv
                         rast, ## raster to calculate stats from
                         ## projections from
                         FUN=ClassStat, ## function for calculating
                         ## stats on buffers
                         plot="PLOT"){
-  these.coord <- coordinates(plt[i, ])
+  these.coord <- plt[i,12:13]
   spStats <- vector("list", length=length(d))
   for(j in 1:length(d)){
     browser()
     p <- spatstat:::disc(d[j], these.coord)
     p <- as(p, 'SpatialPolygons')
-    proj4string(p) <- CRS(proj4string(plt))
+    proj4string(p) <- CRS(proj4string(rast))
     ## masking is more time intensive on larger
     ## rasters so crop first
     new.rast <- crop(rast, extent(p))
@@ -74,19 +74,20 @@ testlapply <- lapply(1:nplot, calcSpStats, d = 10,
 
 ##Tanzania analysis
 #Read in data 
-farm <- readOGR("data", "landscapes_20160927")
-tanz.farm <- farm[farm$cartodb_id >12 & farm$cartodb_id < 21,]
+farm <- na.omit(read.csv('landscape.csv'))
+tanz.farm <- farm[farm$country == "TZA",]
 tanz <- readGDAL("data/tz_tm1-57palglobdem_landcover.dat") 
 tanz <- raster(tanz)
 
 #Test Function
-test.farm <- farm[farm$cartodb_id == 13,]
-testlapply <- lapply(1:1, calcSpStats, d = 10,
+test.farm <- tanz.farm[1,]
+buff <- seq(10, 1100, by=100)
+options(cores = 8)
+testlapply <- lapply(1:1, calcSpStats, d = buff,
                      plt = test.farm, rast =  tanz)
 
 nplot <- length(tanz.farm@polygons)
 buff <- seq(10, 1100, by=100)
-options(cores = 8)
 # spstats.tanz <- mclapply(1:nplot, calcSpStats, d = 10,
 # plt = tanz.farm, rast =  tanz)
 # save(spstats.tanz, "output/tanz_stats.rdata")
