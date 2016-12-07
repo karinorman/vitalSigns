@@ -30,10 +30,11 @@ calcSpStats <- function(i,
                         FUN=ClassStat, ## function for calculating
                         ## stats on buffers
                         plot="PLOT"){
-  these.coord <- plt[i,12:13]
+  rast <- projectRaster(rast, crs = "+proj=utm +zone=37 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
+  these.coord <- as.matrix(plt[i,12:13])
+  these.coord <- project(these.coord, proj = "+proj=utm +zone=37 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
   spStats <- vector("list", length=length(d))
   for(j in 1:length(d)){
-    browser()
     p <- spatstat:::disc(d[j], these.coord)
     p <- as(p, 'SpatialPolygons')
     proj4string(p) <- CRS(proj4string(rast))
