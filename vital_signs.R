@@ -31,7 +31,7 @@ calcSpStats <- function(i,
                         FUN=ClassStat, ## function for calculating
                         ## stats on buffers
                         plot="PLOT"){
-  rast <- projectRaster(rast, crs = "+proj=utm +zone=37 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
+  rast <- projectRaster(rast, crs = "+proj=utm +zone=37 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs", method = 'ngb')
   these.coord <- as.matrix(plt[i,12:13])
   these.coord <- project(these.coord, proj = "+proj=utm +zone=37 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
   spStats <- vector("list", length=length(d))
@@ -46,7 +46,7 @@ calcSpStats <- function(i,
     new.rast <- mask(new.rast, p)
     spStats[[j]] <- FUN(new.rast)
   }
-  names(spStats) <- plt$plt.name
+  names(spStats) <- plt[,plt.name]
   return(spStats)
 }
 
@@ -91,11 +91,8 @@ testlapply <- lapply(1:13, calcSpStats, d = 100,
 options(cores = 8)
 nplot <- nrow(tanz.farm)
 buff <- seq(10, 1100, by=100)
-# spstats.tanz <- mclapply(1:nplot, calcSpStats, d = 10,
-# plt = tanz.farm, rast =  tanz)
-# save(spstats.tanz, "output/tanz_stats.rdata")
 spstats.mult.tanz <- lapply(1:nplot, calcSpStats, d = buff,
-                              plt = tanz.farm, rast =  tanz)
+                              plt = tanz.farm, plt.name = 'description', rast =  tanz)
 save(spstats.mult.tanz, "output/tanz_stats_mult.rdata")
 
 # ## map shapefile
