@@ -25,6 +25,7 @@ pointrastcheck <- function(pt, rast){
 calcSpStats <- function(i,
                         d, ## buffer RADIUS
                         plt, ## plot csv
+                        plt.name, ## name of column with plot names (not a string)
                         rast, ## raster to calculate stats from
                         ## projections from
                         FUN=ClassStat, ## function for calculating
@@ -35,7 +36,8 @@ calcSpStats <- function(i,
   these.coord <- project(these.coord, proj = "+proj=utm +zone=37 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
   spStats <- vector("list", length=length(d))
   for(j in 1:length(d)){
-    p <- spatstat:::disc(d[j], these.coord)
+    p <- try(spatstat:::disc(d[j], these.coord), silent=TRUE)
+    if(inherits(p, "try-error")) browser()
     p <- as(p, 'SpatialPolygons')
     proj4string(p) <- CRS(proj4string(rast))
     ## masking is more time intensive on larger
@@ -44,7 +46,7 @@ calcSpStats <- function(i,
     new.rast <- mask(new.rast, p)
     spStats[[j]] <- FUN(new.rast)
   }
-  names(spStats) <- d
+  names(spStats) <- plt$plt.name
   return(spStats)
 }
 
@@ -81,18 +83,18 @@ tanz <- readGDAL("data/tz_tm1-57palglobdem_landcover.dat")
 tanz <- raster(tanz)
 
 #Test Function
-test.farm <- tanz.farm[1,]
+test.farm <- tanz.farm[2,]
 buff <- seq(10, 1100, by=100)
-options(cores = 8)
-testlapply <- lapply(1:1, calcSpStats, d = buff,
-                     plt = test.farm, rast =  tanz)
+testlapply <- lapply(1:13, calcSpStats, d = 100,
+                     plt = tanz.farm, plt.name = "description", rast =  tanz)
 
-nplot <- length(tanz.farm@polygons)
+options(cores = 8)
+nplot <- nrow(tanz.farm)
 buff <- seq(10, 1100, by=100)
 # spstats.tanz <- mclapply(1:nplot, calcSpStats, d = 10,
 # plt = tanz.farm, rast =  tanz)
 # save(spstats.tanz, "output/tanz_stats.rdata")
-spstats.mult.tanz <- mclapply(1:nplot, calcSpStats, d = buff,
+spstats.mult.tanz <- lapply(1:nplot, calcSpStats, d = buff,
                               plt = tanz.farm, rast =  tanz)
 save(spstats.mult.tanz, "output/tanz_stats_mult.rdata")
 
