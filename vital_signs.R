@@ -46,7 +46,7 @@ calcSpStats <- function(i,
     new.rast <- mask(new.rast, p)
     spStats[[j]] <- FUN(new.rast)
   }
-  names(spStats) <- plt[,plt.name]
+  names(spStats) <- d
   return(spStats)
 }
 
@@ -79,8 +79,17 @@ testlapply <- lapply(1:nplot, calcSpStats, d = 10,
 #Read in data 
 farm <- na.omit(read.csv('landscape.csv'))
 tanz.farm <- farm[farm$country == "TZA",]
+gha.farm <- farm[farm$country == "GHA",]
+ug.farm <- farm[farm$country == "UGA",]
+
 tanz <- readGDAL("data/tz_tm1-57palglobdem_landcover.dat") 
 tanz <- raster(tanz)
+
+gha <- readGDAL("data/gh_tm1-57palglobdem_landcover.dat")
+gha <- raster(gha)
+
+ug <- readGDAL("data/ug_tm1-57palglobdem_landcover.dat")
+ug <- raster(ug)
 
 #Test Function
 test.farm <- tanz.farm[2,]
@@ -93,7 +102,13 @@ nplot <- nrow(tanz.farm)
 buff <- seq(10, 1100, by=100)
 spstats.mult.tanz <- lapply(1:nplot, calcSpStats, d = buff,
                               plt = tanz.farm, plt.name = 'description', rast =  tanz)
-save(spstats.mult.tanz, "output/tanz_stats_mult.rdata")
+save(spstats.mult.tanz, file = "output/tanz_stats.rdata")
+spstats.mult.gha <- lapply(1:nplot, calcSpStats, d = buff,
+                            plt = gha.farm, plt.name = 'description', rast =  gha)
+save(spstats.mult.gha, file = "output/gha_stats.rdata")
+spstats.mult.ug <- lapply(1:nplot, calcSpStats, d = buff,
+                            plt = ug.farm, plt.name = 'description', rast =  ug)
+save(spstats.mult.ug, file = "output/ug_stats.rdata")
 
 # ## map shapefile
 # library(RColorBrewer)
