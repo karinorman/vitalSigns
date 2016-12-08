@@ -51,31 +51,6 @@ calcSpStats <- function(i,
 }
 
 
-
-###### example
-d <- seq(from=50, to=250, by=50)
-nplot <- nrow(coordinates(plots))
-
-save.dir <- "output"
-all.class.stats <- lapply(1:nplot, calcSpStats, d, plots, 
-                          pyro.rast)
-
-names(all.class.stats) <- plots@data$PLOT
-
-load('~/Dropbox/Yosemite/analysis/spatialData/config/saved/rasters/allRast.Rdata')
-load('~/Dropbox/Yosemite/analysis/spatialData/data/plots.Rdata')
-
-d <- seq(10, 1000, by=100)
-nplot <- nrow(plots@data)
-
-testlapply <- lapply(1:nplot, calcSpStats, d = 10, 
-                     plt = plots, rast =  pyro.rast, sev=sev,
-                     file.name = 'output/tanz_stats.rdata', plot = 'PLOT')
-
-
-
-
-##Tanzania analysis
 #Read in data 
 farm <- na.omit(read.csv('landscape.csv'))
 tanz.farm <- farm[farm$country == "TZA",]
@@ -92,20 +67,27 @@ ug <- readGDAL("data/ug_tm1-57palglobdem_landcover.dat")
 ug <- raster(ug)
 
 #Test Function
-test.farm <- tanz.farm[2,]
-buff <- seq(10, 1100, by=100)
-testlapply <- lapply(1:13, calcSpStats, d = 100,
-                     plt = tanz.farm, plt.name = "description", rast =  tanz)
+##test.farm <- tanz.farm[2,]
+##buff <- seq(10, 1100, by=100)
+##testlapply <- lapply(1:13, calcSpStats, d = 100,
+                    ## plt = tanz.farm, plt.name = "description", rast =  tanz)
 
-options(cores = 8)
-nplot <- nrow(tanz.farm)
 buff <- seq(10, 1100, by=100)
+
+#Tanzania Analysis
+nplot <- nrow(tanz.farm)
 spstats.mult.tanz <- lapply(1:nplot, calcSpStats, d = buff,
                               plt = tanz.farm, plt.name = 'description', rast =  tanz)
 save(spstats.mult.tanz, file = "output/tanz_stats.rdata")
+
+#Ghana Analysis
+nplot <- nrow(gha.farm)
 spstats.mult.gha <- lapply(1:nplot, calcSpStats, d = buff,
                             plt = gha.farm, plt.name = 'description', rast =  gha)
 save(spstats.mult.gha, file = "output/gha_stats.rdata")
+
+#Uganda Analysis
+nplot <- nrow(ug.farm)
 spstats.mult.ug <- lapply(1:nplot, calcSpStats, d = buff,
                             plt = ug.farm, plt.name = 'description', rast =  ug)
 save(spstats.mult.ug, file = "output/ug_stats.rdata")
