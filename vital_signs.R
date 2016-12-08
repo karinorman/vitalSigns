@@ -91,38 +91,3 @@ nplot <- nrow(ug.farm)
 spstats.mult.ug <- lapply(1:nplot, calcSpStats, d = buff,
                             plt = ug.farm, plt.name = 'description', rast =  ug)
 save(spstats.mult.ug, file = "output/ug_stats.rdata")
-
-# ## map shapefile
-# library(RColorBrewer)
-# colors <- brewer.pal(9, "BuGn")
-# library(ggmap)
-# mapImage <- get_map(location = c(lon = 35, lat = -6),
-#                     color = "color",
-#                     source = "osm",
-#                                         # maptype = "terrain",
-#                     zoom = 6)
-# landscape <- fortify(tanz.farm)
-# ggmap(mapImage) +
-#   geom_polygon(aes(x = long,
-#                    y = lat,
-#                    group = group),
-#                data = landscape,
-#                color = colors[9],
-#                fill = colors[6],
-#                alpha = 0.5) +
-#   labs(x = "Longitude",
-#        y = "Latitude")
-
-landscape <- fortify(tanz.farm)
-gplot(tanz) + geom_tile(aes(fill = value)) +
-  facet_wrap(~ variable) +
-  scale_fill_gradient(low = 'white', high = 'blue') +
-  coord_equal() +
-  geom_polygon(aes(x = long,
-            y = lat,
-            group = group),
-            data = landscape,
-            alpha = 0.5) +
-  labs(x = "Longitude",
-      y = "Latitude")
-
