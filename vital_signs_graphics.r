@@ -6,6 +6,7 @@ load("~/Documents/Berkeley/vital_signs/output/tanz_stats.rdata")
 load("~/Documents/Berkeley/vital_signs/output/gha_stats.rdata")
 load("~/Documents/Berkeley/vital_signs/output/ug_stats.rdata")
 
+
 get_buffer_data <- function(data, buffer_size){
   bufdat <- data.frame()
   for (i in 1:length(data)){
@@ -22,6 +23,7 @@ tanz_crop <- tanz %>% filter(X810.class == 30)
 
 #Buffer of 810 m
 tanz <- rbind(spstats.mult.tanz$`Sumbawanga Cluster`$`810`, spstats.mult.tanz$`Ihemi Cluster - Mufindi`$`810`)
+
 sumb <- as.data.frame(spstats.tanz$`Sumbawanga Cluster`)
 sumb <- cbind(cluster = 'Sumbawanga', sumb)
 sumb2 <- as.data.frame(spstats.tanz$`Sumbawanga2 Cluster`)
@@ -45,9 +47,13 @@ irrigated.croplands <- giant %>% filter(X10.class == 11)
 rain.croplands <- giant %>% filter(X10.class == 14)
 mosaic.croplands <- giant %>% filter(X10.class == 20)
 
-ggplot(data = melt(mosaic.croplands[,c("X10.total.area", "X10.patch.density", "X10.mean.shape.index")]), mapping = aes(x = value)) + geom_histogram(bins = 5) + facet_wrap(~variable, scales = 'free_x') + ggtitle("Mosaic Cropland")
+ggplot(data = melt(mosaic.croplands[,c("X10.total.area",
+         "X10.patch.density", "X10.mean.shape.index")]),
+       mapping = aes(x = value)) + geom_histogram(bins = 5) + facet_wrap(~variable, scales = 'free_x') + ggtitle("Mosaic Cropland")
 
-ggplot(data = melt(irrigated.croplands[,c("X10.total.area", "X10.patch.density", "X10.mean.shape.index")]), mapping = aes(x = value)) + geom_histogram(bins = 5) + facet_wrap(~variable, scales = 'free_x') + ggtitle("Irrigated Cropland")
+ggplot(data = melt(irrigated.croplands[,c("X10.total.area",
+         "X10.patch.density", "X10.mean.shape.index")]),
+       mapping = aes(x = value)) + geom_histogram(bins = 5) + facet_wrap(~variable, scales = 'free_x') + ggtitle("Irrigated Cropland")
 
 ggplot(data = melt(rain.croplands[,c("X10.total.area", "X10.patch.density", "X10.mean.shape.index")]), mapping = aes(x = value)) + geom_histogram(bins = 5) + facet_wrap(~variable, scales = 'free_x') + ggtitle("Rainfed Cropland")
 
@@ -90,3 +96,6 @@ gplot(tanz) + geom_tile(aes(fill = value)) +
   labs(x = "Longitude",
        y = "Latitude")
 
+ggplot(data = melt(rain.croplands[,c("X10.total.area",
+         "X10.patch.density", "X10.mean.shape.index")]),
+       mapping = aes(x = value)) + geom_histogram(bins = 5) + facet_wrap(~variable, scales = 'free_x') + ggtitle("Rainfed Cropland")
