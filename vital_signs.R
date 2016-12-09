@@ -31,9 +31,7 @@ calcSpStats <- function(i,
                         FUN=ClassStat, ## function for calculating
                         ## stats on buffers
                         plot="PLOT"){
-  rast <- projectRaster(rast, crs =
-                        "+proj=utm +zone=37 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs",
-                        method = 'ngb')
+  rast <- projectRaster(rast, crs = "+proj=utm +zone=37 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs", method = 'ngb')
   these.coord <- as.matrix(plt[i,12:13])
   these.coord <- project(these.coord, proj = "+proj=utm +zone=37 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
   spStats <- vector("list", length=length(d))
@@ -74,7 +72,7 @@ ug <- raster(ug)
 ##testlapply <- lapply(1:13, calcSpStats, d = 100,
                     ## plt = tanz.farm, plt.name = "description", rast =  tanz)
 
-buff <- seq(10, 1100, by=100)
+buff <- seq(1000, 5000, by=1000)
 
 #Tanzania Analysis
 nplot <- nrow(tanz.farm)
