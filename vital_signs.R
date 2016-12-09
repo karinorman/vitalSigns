@@ -78,16 +78,19 @@ buff <- seq(10, 1100, by=100)
 nplot <- nrow(tanz.farm)
 spstats.mult.tanz <- lapply(1:nplot, calcSpStats, d = buff,
                               plt = tanz.farm, plt.name = 'description', rast =  tanz)
+names(spstats.mult.tanz) <- tanz.farm$description
 save(spstats.mult.tanz, file = "output/tanz_stats.rdata")
 
 #Ghana Analysis
 nplot <- nrow(gha.farm)
 spstats.mult.gha <- lapply(1:nplot, calcSpStats, d = buff,
                             plt = gha.farm, plt.name = 'description', rast =  gha)
+names(spstats.mult.gha) <- gha.farm$description
 save(spstats.mult.gha, file = "output/gha_stats.rdata")
 
 #Uganda Analysis
 nplot <- nrow(ug.farm)
 spstats.mult.ug <- lapply(1:nplot, calcSpStats, d = buff,
                             plt = ug.farm, plt.name = 'description', rast =  ug)
+names(spstats.mult.ug) <- ug.farm$description
 save(spstats.mult.ug, file = "output/ug_stats.rdata")
