@@ -72,7 +72,7 @@ ug <- raster(ug)
 ##testlapply <- lapply(1:13, calcSpStats, d = 100,
                     ## plt = tanz.farm, plt.name = "description", rast =  tanz)
 
-buff <- seq(1000, 5000, by=1000)
+buff <- seq(1000, 10000, by=1000)
 
 #Tanzania Analysis
 nplot <- nrow(tanz.farm)
