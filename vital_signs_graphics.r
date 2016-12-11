@@ -1,6 +1,7 @@
 library(dplyr)
 library(reshape2)
 library(ggplot2)
+library(data.table)
 
 load("~/Documents/Berkeley/vital_signs/output/tanz_stats.rdata")
 load("~/Documents/Berkeley/vital_signs/output/gha_stats.rdata")
@@ -18,11 +19,50 @@ get_buffer_data <- function(data, buffer_size){
   return(bufdat)
 }
 
+#Buffer of 810 m
 tanz <- get_buffer_data(spstats.mult.tanz, '810')
 tanz_crop <- tanz %>% filter(X810.class == 30)
-
-#Buffer of 810 m
 tanz <- rbind(spstats.mult.tanz$`Sumbawanga Cluster`$`810`, spstats.mult.tanz$`Ihemi Cluster - Mufindi`$`810`)
+
+#Calc diversity metric
+landStats <- function(class.stats){
+  simpson <- function(stats){
+    1- sum(stats[,"prop.landscape"]^2)
+  }
+  land.stats <- lapply(class.stats, function(x){
+    if(!is.null(x)){
+    means <- apply(x, 2, mean, na.rm=TRUE)
+    simpson.div <- simpson(x)
+    names(simpson.div) <- "simpson.div"
+    return(c(means, simpson.div))
+    } else {
+      return(NA)
+    }
+  })
+  return(land.stats)
+}
+
+#Get stats in pretty dataframe preserving landscape and buffer labesl
+unlist_landStats <- function(land.stats){
+  div.clean <- data.frame()
+  for(i in 1:length(land.stats)){
+    clust <- as.data.frame(do.call(rbind, land.stats[[i]]))
+    setDT(clust, keep.rownames = TRUE)[]
+    clust <- cbind(cluster = names(land.stats[i]), clust)
+    div.clean <- rbind(div.clean, clust)
+  }
+  names(div.clean)[[2]] <- "buffer"
+  return(div.clean)
+}
+
+div.tanz <- lapply(spstats.mult.tanz, landStats)
+div.tanz <- unlist_landStats(div.tanz)
+
+div.gha <- lapply(spstats.mult.gha, landStats)
+div.gha <- unlist_landStats(div.gha)
+
+div.ug <- lapply(spstats.mult.ug, landStats)
+div.ug <- unlist_landStats(div.ug)
 
 sumb <- as.data.frame(spstats.tanz$`Sumbawanga Cluster`)
 sumb <- cbind(cluster = 'Sumbawanga', sumb)
