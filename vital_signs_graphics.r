@@ -81,12 +81,31 @@ get_density_plt <- function(data, var, buff, ...){
 buff <- seq(1000, 10000, by=1000)
 op <- par(mfrow = c(length(buff),3),
           oma = c(2,3,2,2),
-          mar = c(2,2,1,1))
+          mar = c(.75,.75,.75,.75))
 for (i in 1:length(buff)){
-  get_density_plt(div.tanz, "simpson.div", buff[i], ylim=c(0,4), main = "")
-  get_density_plt(div.ug, "simpson.div", buff[i], ylim=c(0,4), main = "")
-  get_density_plt(div.gha, "simpson.div", buff[i], ylim=c(0,4), main = "")
-})
+  if (i != length(buff)){
+    get_density_plt(div.tanz, "simpson.div", buff[i], ylim=c(0,4), xlim=c(-.4,1), main = "", xaxt = 'n', col = 51)
+    axis(side=1, labels = F)
+  } else{
+    get_density_plt(div.tanz, "simpson.div", buff[i], ylim=c(0,4), xlim=c(-.4,1), main = "", col = 51)
+  }
+  if (i != length(buff)){
+    get_density_plt(div.ug, "simpson.div", buff[i], ylim=c(0,4), xlim=c(-.4,1), main = "", xaxt='n', yaxt='n', col = 132)
+    axis(side=1, labels = F)
+    axis(side=2, labels = F)
+  } else{
+    get_density_plt(div.ug, "simpson.div", buff[i], ylim=c(0,4), xlim=c(-.4,1), main = "", yaxt = 'n', col = 132)
+    axis(side=2, labels = F)
+  }
+  if (i != length(buff)){
+    get_density_plt(div.gha, "simpson.div", buff[i], ylim=c(0,4), xlim=c(-0.4, 1), main = "", xaxt = 'n', yaxt = 'n', col = 37)
+    axis(side=1, labels = F)
+    axis(side=2, labels = F)
+  } else{
+    get_density_plt(div.gha, "simpson.div", buff[i], ylim=c(0,4), xlim=c(-0.4, 1), main = "", yaxt = 'n', col = 37)
+    axis(side=2, labels = F)
+  }
+}
 par(op)
 #dev.off()
 
