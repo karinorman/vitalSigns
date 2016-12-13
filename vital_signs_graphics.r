@@ -1,3 +1,4 @@
+library(plyr)
 library(dplyr)
 library(reshape2)
 library(ggplot2)
@@ -57,48 +58,43 @@ unlist_landStats <- function(land.stats){
 
 div.tanz <- lapply(spstats.mult.tanz, landStats)
 div.tanz <- unlist_landStats(div.tanz)
+div.tanz <- cbind(country = "Tanzania", div.tanz)
 
 div.gha <- lapply(spstats.mult.gha, landStats)
 div.gha <- unlist_landStats(div.gha)
+div.gha <- cbind(country = "Ghana", div.gha)
 
 div.ug <- lapply(spstats.mult.ug, landStats)
 div.ug <- unlist_landStats(div.ug)
+div.ug <- cbind(country = "Uganda", div.ug)
 
-sumb <- as.data.frame(spstats.tanz$`Sumbawanga Cluster`)
-sumb <- cbind(cluster = 'Sumbawanga', sumb)
-sumb2 <- as.data.frame(spstats.tanz$`Sumbawanga2 Cluster`)
-sumb2 <- cbind(cluster = 'Sumbawanga2', sumb2)
-ih <- as.data.frame(spstats.tanz$`Ihemi Cluster`)
-ih <- cbind(cluster = 'Ihemi', ih)
-ih2 <- as.data.frame(spstats.tanz$`Ihemi2 Cluster`)
-ih2 <- cbind(cluster = 'Ihemi2', ih2)
-lud <- as.data.frame(spstats.tanz$`Ludewa Cluster`)
-lud <- cbind(cluster = 'Ludewa', lud)
-kil <- as.data.frame(spstats.tanz$`Kilombero Cluster`)
-kil <- cbind(cluster = 'Kilombero', kil)
-mb <- as.data.frame(spstats.tanz$`MBarali Cluster`)
-mb <- cbind(cluster = 'Mbarali', mb)
-ruf <- as.data.frame(spstats.tanz$`Rufiji Cluster`)
-ruf <- cbind(cluster = 'Rufiji', ruf)
+simpson <- rbind(div.tanz[,c("country", "buffer", "simpson.div")], div.gha[,c("country", "buffer", "simpson.div")], div.ug[,c("country", "buffer", "simpson.div")])
 
-giant <- rbind(sumb, ih, lud, ih2, kil, mb, sumb2, ruf)
-
-irrigated.croplands <- giant %>% filter(X10.class == 11)
-rain.croplands <- giant %>% filter(X10.class == 14)
-mosaic.croplands <- giant %>% filter(X10.class == 20)
-
-ggplot(data = melt(mosaic.croplands[,c("X10.total.area",
-         "X10.patch.density", "X10.mean.shape.index")]),
-       mapping = aes(x = value)) + geom_histogram(bins = 5) + facet_wrap(~variable, scales = 'free_x') + ggtitle("Mosaic Cropland")
-
-ggplot(data = melt(irrigated.croplands[,c("X10.total.area",
-         "X10.patch.density", "X10.mean.shape.index")]),
-       mapping = aes(x = value)) + geom_histogram(bins = 5) + facet_wrap(~variable, scales = 'free_x') + ggtitle("Irrigated Cropland")
-
-ggplot(data = melt(rain.croplands[,c("X10.total.area", "X10.patch.density", "X10.mean.shape.index")]), mapping = aes(x = value)) + geom_histogram(bins = 5) + facet_wrap(~variable, scales = 'free_x') + ggtitle("Rainfed Cropland")
+get_buffer_density <- function(data, var, buff){
+  data_buff <- data %>% filter(buffer == buff)
+  dens <- density(unlist(data_buff[var]))
+  return(dens)
+}
 
 
+###Histograms
+#pdf("simpson_density.pdf", width=5.05, height = 5.05)
+buff <- seq(1000, 10000, by=1000)
+#par(mfrow=c(length(buff),3), oma=c(3,0,0,0))
+op <- par(mfrow = c(length(buff),3),
+          oma = c(2,3,2,2),
+          mar = c(2,2,1,1))
+for (i in 1:length(buff)){
+  tanz_buff <- get_buffer_density(div.tanz, "simpson.div", buff[i])
+  ug_buff <- get_buffer_density(div.ug, "simpson.div", buff[i])
+  gha_buff <- get_buffer_density(gha_buff, "simpson.div", buff[i])
+  y_max <- max(tanz_buff$y, ug_buff$y, gha_buff$y)
+  plot(tanz_buff, ylim = c(0,y_max))
+}
 
+#mtext('Density', side = 2, outer = TRUE, line = 2)
+par(op)
+#dev.off()
 
 ##Mapping
 
@@ -123,19 +119,20 @@ ggplot(data = melt(rain.croplands[,c("X10.total.area", "X10.patch.density", "X10
 #   labs(x = "Longitude",
 #        y = "Latitude")
 
-landscape <- fortify(tanz.farm)
-gplot(tanz) + geom_tile(aes(fill = value)) +
-  facet_wrap(~ variable) +
-  scale_fill_gradient(low = 'white', high = 'blue') +
-  coord_equal() +
-  geom_polygon(aes(x = long,
-                   y = lat,
-                   group = group),
-               data = landscape,
-               alpha = 0.5) +
-  labs(x = "Longitude",
-       y = "Latitude")
-
-ggplot(data = melt(rain.croplands[,c("X10.total.area",
-         "X10.patch.density", "X10.mean.shape.index")]),
-       mapping = aes(x = value)) + geom_histogram(bins = 5) + facet_wrap(~variable, scales = 'free_x') + ggtitle("Rainfed Cropland")
+# ## Map Raster
+# landscape <- fortify(tanz.farm)
+# gplot(tanz) + geom_tile(aes(fill = value)) +
+#   facet_wrap(~ variable) +
+#   scale_fill_gradient(low = 'white', high = 'blue') +
+#   coord_equal() +
+#   geom_polygon(aes(x = long,
+#                    y = lat,
+#                    group = group),
+#                data = landscape,
+#                alpha = 0.5) +
+#   labs(x = "Longitude",
+#        y = "Latitude")
+# 
+# ggplot(data = melt(rain.croplands[,c("X10.total.area",
+#          "X10.patch.density", "X10.mean.shape.index")]),
+#        mapping = aes(x = value)) + geom_histogram(bins = 5) + facet_wrap(~variable, scales = 'free_x') + ggtitle("Rainfed Cropland")
