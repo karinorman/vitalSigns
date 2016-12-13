@@ -70,29 +70,23 @@ div.ug <- cbind(country = "Uganda", div.ug)
 
 simpson <- rbind(div.tanz[,c("country", "buffer", "simpson.div")], div.gha[,c("country", "buffer", "simpson.div")], div.ug[,c("country", "buffer", "simpson.div")])
 
-get_buffer_density <- function(data, var, buff){
+get_density_plt <- function(data, var, buff, ...){
   data_buff <- data %>% filter(buffer == buff)
   dens <- density(unlist(data_buff[var]))
-  return(dens)
+  plot(dens, ...)
 }
-
 
 ###Histograms
 #pdf("simpson_density.pdf", width=5.05, height = 5.05)
 buff <- seq(1000, 10000, by=1000)
-#par(mfrow=c(length(buff),3), oma=c(3,0,0,0))
 op <- par(mfrow = c(length(buff),3),
           oma = c(2,3,2,2),
           mar = c(2,2,1,1))
 for (i in 1:length(buff)){
-  tanz_buff <- get_buffer_density(div.tanz, "simpson.div", buff[i])
-  ug_buff <- get_buffer_density(div.ug, "simpson.div", buff[i])
-  gha_buff <- get_buffer_density(gha_buff, "simpson.div", buff[i])
-  y_max <- max(tanz_buff$y, ug_buff$y, gha_buff$y)
-  plot(tanz_buff, ylim = c(0,y_max))
-}
-
-#mtext('Density', side = 2, outer = TRUE, line = 2)
+  get_density_plt(div.tanz, "simpson.div", buff[i], ylim=c(0,4), main = "")
+  get_density_plt(div.ug, "simpson.div", buff[i], ylim=c(0,4), main = "")
+  get_density_plt(div.gha, "simpson.div", buff[i], ylim=c(0,4), main = "")
+})
 par(op)
 #dev.off()
 
