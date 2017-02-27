@@ -8,6 +8,7 @@ load("~/Documents/Berkeley/vital_signs/output/tanz_stats.rdata")
 load("~/Documents/Berkeley/vital_signs/output/gha_stats.rdata")
 load("~/Documents/Berkeley/vital_signs/output/ug_stats.rdata")
 
+names(spstats.mult.tanz[2]) <- "Sumbawanga Cluster 2"
 
 get_buffer_data <- function(data, buffer_size){
   bufdat <- data.frame()
@@ -19,11 +20,6 @@ get_buffer_data <- function(data, buffer_size){
   }
   return(bufdat)
 }
-
-#Buffer of 810 m
-tanz <- get_buffer_data(spstats.mult.tanz, '810')
-tanz_crop <- tanz %>% filter(X810.class == 30)
-tanz <- rbind(spstats.mult.tanz$`Sumbawanga Cluster`$`810`, spstats.mult.tanz$`Ihemi Cluster - Mufindi`$`810`)
 
 #Calc diversity metric
 landStats <- function(class.stats){
@@ -80,7 +76,7 @@ get_density_plt <- function(data, var, buff, ...){
 #pdf("simpson_density.pdf", width=5.05, height = 5.05)
 buff <- seq(1000, 10000, by=1000)
 op <- par(mfrow = c(length(buff),3),
-          oma = c(2,3,2,2),
+          oma = c(2,2,2,2),
           mar = c(.75,.75,.75,.75))
 for (i in 1:length(buff)){
   if (i != length(buff)){
@@ -90,25 +86,46 @@ for (i in 1:length(buff)){
     get_density_plt(div.tanz, "simpson.div", buff[i], ylim=c(0,4), xlim=c(-.4,1), main = "", col = 51)
   }
   if (i != length(buff)){
-    get_density_plt(div.ug, "simpson.div", buff[i], ylim=c(0,4), xlim=c(-.4,1), main = "", xaxt='n', yaxt='n', col = 132)
+    get_density_plt(div.ug, "simpson.div", buff[i], ylim=c(0,4), xlim=c(-.4,1), main = "", xaxt='n', yaxt='n', col = 53)
     axis(side=1, labels = F)
     axis(side=2, labels = F)
   } else{
-    get_density_plt(div.ug, "simpson.div", buff[i], ylim=c(0,4), xlim=c(-.4,1), main = "", yaxt = 'n', col = 132)
+    get_density_plt(div.ug, "simpson.div", buff[i], ylim=c(0,4), xlim=c(-.4,1), main = "", yaxt = 'n', col = 53)
     axis(side=2, labels = F)
   }
   if (i != length(buff)){
-    get_density_plt(div.gha, "simpson.div", buff[i], ylim=c(0,4), xlim=c(-0.4, 1), main = "", xaxt = 'n', yaxt = 'n', col = 37)
+    get_density_plt(div.gha, "simpson.div", buff[i], ylim=c(0,4), xlim=c(-0.4, 1), main = "", xaxt = 'n', yaxt = 'n', col = 132)
     axis(side=1, labels = F)
     axis(side=2, labels = F)
   } else{
-    get_density_plt(div.gha, "simpson.div", buff[i], ylim=c(0,4), xlim=c(-0.4, 1), main = "", yaxt = 'n', col = 37)
+    get_density_plt(div.gha, "simpson.div", buff[i], ylim=c(0,4), xlim=c(-0.4, 1), main = "", yaxt = 'n', col = 132)
     axis(side=2, labels = F)
   }
 }
 par(op)
 #dev.off()
 
+##Histogram of Simpson Diversity Uganda
+par(mfrow = c(5, 2))
+for (i in 1:length(buff)){
+  data_buff <- div.ug %>% filter(buffer == buff[i])
+  hist(unlist(data_buff['simpson.div']))
+}
+
+#Max Patch 
+crop.tanz <- unlist_landStats(spstats.mult.tanz)
+crop.tanz <- crop.tanz %>% filter(class < 35)
+get_max_patch <- function(country_data, col){
+  name <- names(country_data)
+  for (i in length(name)){
+    clust <- country_data %>% filter(cluster == name[i])
+    for(i in 1:10){
+      clust_buff <- clust %>% filter()
+      max_patch <- max(clust[col])
+    }
+    
+  }
+}
 ##Mapping
 
 # ## map shapefile
