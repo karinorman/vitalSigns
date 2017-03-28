@@ -1,117 +1,93 @@
 # Nov. 3, 2016
 # Compiling VS data
 
-# hh data wd
-setwd("~/ESPM 277/Vital Signs/Vital Signs Data/Household Survey")
+# set working directory for analysis code
+setwd("~/Dropbox/vitalSigns/analysis/vital_signs")
 
-# secA
-secAgha<-read.csv("hh_secA_GHA_0.csv")
-secArwa<-read.csv("hh_secA_RWA_0.csv")
-secAtza<-read.csv("hh_secA_TZA_0.csv")
-secAuga<-read.csv("hh_secA_UGA_0.csv")
-hh_secA<-rbind(secAgha,secArwa,secAtza,secAuga)
-write.csv(hh_secA, file = "hh_secA.csv")
+# prep to combine raw data files
+data.dir <- "../../data/Agricultural - Household/hh_data/raw files"
+hh.data <- list.files(data.dir)
 
-# secB
-secBgha<-read.csv("hh_secB_GHA_0.csv")
-secBrwa<-read.csv("hh_secB_RWA_0.csv")
-secBtza<-read.csv("hh_secB_TZA_0.csv")
-secBuga<-read.csv("hh_secB_UGA_0.csv")
-hh_secB<-rbind(secBgha,secBrwa,secBtza,secBuga)
-write.csv(hh_secB, file = "hh_secB.csv")
+# combine secA
+secA <- paste(data.dir, hh.data[grepl("secA", hh.data)],
+                     sep="/")
+secA.csv <- lapply(secA, read.csv)
+secA.csv <- do.call(rbind, secA.csv)
 
-# secC
-secCgha<-read.csv("hh_secC_GHA_0.csv")
-secCrwa<-read.csv("hh_secC_RWA_0.csv")
-secCtza<-read.csv("hh_secC_TZA_0.csv")
-secCuga<-read.csv("hh_secC_UGA_0.csv")
-hh_secC<-rbind(secCgha,secCrwa,secCtza,secCuga)
-write.csv(hh_secC, file = "hh_secC.csv")
+# combine secB
+secB <- paste(data.dir, hh.data[grepl("secB", hh.data)],
+              sep="/")
+secB.csv <- lapply(secB, read.csv)
+secB.csv <- do.call(rbind, secB.csv)
 
-# secE
-secEgha<-read.csv("hh_secE_GHA_0.csv")
-secErwa<-read.csv("hh_secE_RWA_0.csv")
-secEtza<-read.csv("hh_secE_TZA_0.csv")
-secEuga<-read.csv("hh_secE_UGA_0.csv")
-hh_secE<-rbind(secEgha,secErwa,secEtza,secEuga)
-write.csv(hh_secE, file = "hh_secE.csv")
+# combine secC
+secC <- paste(data.dir, hh.data[grepl("secC", hh.data)],
+              sep="/")
+secC.csv <- lapply(secC, read.csv)
+secC.csv <- do.call(rbind, secC.csv)
 
-# secHV1
-secHV1gha<-read.csv("hh_secHV1_GHA_0.csv")
-secHV1rwa<-read.csv("hh_secHV1_RWA_0.csv")
-secHV1tza<-read.csv("hh_secHV1_TZA_0.csv")
-secHV1uga<-read.csv("hh_secHV1_UGA_0.csv")
-hh_secHV1<-rbind(secHV1gha,secHV1rwa,secHV1tza,secHV1uga)
-write.csv(hh_secHV1, file = "hh_secHV1.csv")
+# combine secE
+secE <- paste(data.dir, hh.data[grepl("secE", hh.data)],
+              sep="/")
+secE.csv <- lapply(secE, read.csv)
+secE.csv <- do.call(rbind, secE.csv)
 
-# secHV2
-secHV2gha<-read.csv("hh_secHV2_GHA_0.csv")
-secHV2rwa<-read.csv("hh_secHV2_RWA_0.csv")
-secHV2tza<-read.csv("hh_secHV2_TZA_0.csv")
-secHV2uga<-read.csv("hh_secHV2_UGA_0.csv")
-hh_secHV2<-rbind(secHV2gha,secHV2rwa,secHV2tza,secHV2uga)
-write.csv(hh_secHV2, file = "hh_secHV2.csv")
+# combine secHV1
+secHV1 <- paste(data.dir, hh.data[grepl("secHV1", hh.data)],
+              sep="/")
+secHV1.csv <- lapply(secHV1, read.csv)
+secHV1.csv <- do.call(rbind, secHV1.csv)
 
-# secI
-secIgha<-read.csv("hh_sec_I_GHA_0.csv")
-secIrwa<-read.csv("hh_sec_I_RWA_0.csv")
-secItza<-read.csv("hh_sec_I_TZA_0.csv")
-secIuga<-read.csv("hh_sec_I_UGA_0.csv")
-hh_secI<-rbind(secIgha,secIrwa,secItza,secIuga)
-write.csv(hh_secI, file = "hh_secI.csv")
+# combine secHV2
+secHV2 <- paste(data.dir, hh.data[grepl("secHV2", hh.data)],
+                sep="/")
+secHV2.csv <- lapply(secHV2, read.csv)
+secHV2.csv <- do.call(rbind, secHV2.csv)
 
-# secJ1
-secJ1gha<-read.csv("hh_secJ1_GHA_0.csv")
-secJ1rwa<-read.csv("hh_secJ1_RWA_0.csv")
-secJ1tza<-read.csv("hh_secJ1_TZA_0.csv")
-secJ1uga<-read.csv("hh_secJ1_UGA_0.csv")
-hh_secJ1<-rbind(secJ1gha,secJ1rwa,secJ1tza,secJ1uga)
-write.csv(hh_secJ1, file = "hh_secJ1.csv")
+# combine secI
+secI <- paste(data.dir, hh.data[grepl("sec_I", hh.data)],
+                sep="/")
+secI.csv <- lapply(secI, read.csv)
+secI.csv <- do.call(rbind, secI.csv)
 
-# secJ2
-secJ2gha<-read.csv("hh_secJ2_GHA_0.csv")
-secJ2rwa<-read.csv("hh_secJ2_RWA_0.csv")
-secJ2tza<-read.csv("hh_secJ2_TZA_0.csv")
-secJ2uga<-read.csv("hh_secJ2_UGA_0.csv")
-hh_secJ2<-rbind(secJ2gha,secJ2rwa,secJ2tza,secJ2uga)
-write.csv(hh_secJ2, file = "hh_secJ2.csv")
+# combine secJ1
+secJ1 <- paste(data.dir, hh.data[grepl("secJ1", hh.data)],
+              sep="/")
+secJ1.csv <- lapply(secJ1, read.csv)
+secJ1.csv <- do.call(rbind, secJ1.csv)
 
-# secK1
-secK1gha<-read.csv("hh_secK1_GHA_0.csv")
-secK1rwa<-read.csv("hh_secK1_RWA_0.csv")
-secK1tza<-read.csv("hh_secK1_TZA_0.csv")
-secK1uga<-read.csv("hh_secK1_UGA_0.csv")
-hh_secK1<-rbind(secK1gha,secK1rwa,secK1tza,secK1uga)
-write.csv(hh_secK1, file = "hh_secK1.csv")
+# combine secJ2
+secJ2 <- paste(data.dir, hh.data[grepl("secJ2", hh.data)],
+               sep="/")
+secJ2.csv <- lapply(secJ2, read.csv)
+secJ2.csv <- do.call(rbind, secJ2.csv)
 
-# secK2
-secK2gha<-read.csv("hh_secK2_GHA_1.csv")
-secK2rwa<-read.csv("hh_secK2_RWA_1.csv")
-secK2tza<-read.csv("hh_secK2_TZA_1.csv")
-secK2uga<-read.csv("hh_secK2_UGA_1.csv")
-hh_secK2<-rbind(secK2gha,secK2rwa,secK2tza,secK2uga)
-write.csv(hh_secK2, file = "hh_secK2.csv")
+# combine secK1
+secK1 <- paste(data.dir, hh.data[grepl("secK1", hh.data)],
+               sep="/")
+secK1.csv <- lapply(secK1, read.csv)
+secK1.csv <- do.call(rbind, secK1.csv)
 
-# secL
-sec_Lgha<-read.csv("hh_secL_GHA_0.csv")
-sec_Lrwa<-read.csv("hh_secL_RWA_0.csv")
-sec_Ltza<-read.csv("hh_secL_TZA_0.csv")
-sec_Luga<-read.csv("hh_secL_UGA_0.csv")
-hh_sec_L<-rbind(sec_Lgha,sec_Lrwa,sec_Ltza,sec_Luga)
-write.csv(hh_sec_L, file = "hh_sec_L.csv")
+# combine secK2
+secK2 <- paste(data.dir, hh.data[grepl("secK2", hh.data)],
+               sep="/")
+secK2.csv <- lapply(secK2, read.csv)
+secK2.csv <- do.call(rbind, secK2.csv)
 
-# secN
-secNgha<-read.csv("hh_secN_GHA_0.csv")
-secNrwa<-read.csv("hh_secN_RWA_0.csv")
-secNtza<-read.csv("hh_secN_TZA_0.csv")
-secNuga<-read.csv("hh_secN_UGA_0.csv")
-hh_secN<-rbind(secNgha,secNrwa,secNtza,secNuga)
-write.csv(hh_secN, file = "hh_secN.csv")
+# combine secL
+secL <- paste(data.dir, hh.data[grepl("secL", hh.data)],
+               sep="/")
+secL.csv <- lapply(secL, read.csv)
+secL.csv <- do.call(rbind, secL.csv)
 
-# secU
-secUgha<-read.csv("hh_secU_GHA_0.csv")
-secUrwa<-read.csv("hh_secU_RWA_0.csv")
-secUtza<-read.csv("hh_secU_TZA_0.csv")
-secUuga<-read.csv("hh_secU_UGA_0.csv")
-hh_secU<-rbind(secUgha,secUrwa,secUtza,secUuga)
-write.csv(hh_secU, file = "hh_secU.csv")
+# combine secN
+secN <- paste(data.dir, hh.data[grepl("secN", hh.data)],
+              sep="/")
+secN.csv <- lapply(secN, read.csv)
+secN.csv <- do.call(rbind, secN.csv)
+
+# combine secU
+secU <- paste(data.dir, hh.data[grepl("secU", hh.data)],
+              sep="/")
+secU.csv <- lapply(secU, read.csv)
+secU.csv <- do.call(rbind, secU.csv)
