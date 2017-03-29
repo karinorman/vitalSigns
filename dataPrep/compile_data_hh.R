@@ -1,12 +1,6 @@
-# set working directory for analysis code
+rm(list=ls())
 setwd("~/Dropbox/vitalSigns/analysis/vital_signs")
-
-# prep to combine raw data files
-data.dir <- "../../data/Agricultural - Household/hh_data/raw files"
 save.dir <- "../../saved/survey"
-
-hh.data <- list.files(data.dir)
-
 
 getData <- function(data.name, file.list, data.dir){
     dats <- paste(data.dir, file.list[grepl(data.name, file.list)],
@@ -16,29 +10,86 @@ getData <- function(data.name, file.list, data.dir){
     return(dats.csv)
 }
 
-shared.colnames <-  c("Country", "Partner.Organization", "longitude",
+shared.names.hh <-  c("Country", "Partner.Organization", "longitude",
                       "latitude", "Landscape..", "Household.ID",
                       "Data.entry.date", "Individual.ID")
 
-section.names <- c("secA", "secB", "secC", "secE", "secHV1", "secHV2",
+
+## *****************************************************************
+## household data
+## *****************************************************************
+
+data.dir.hh <- "../../data/Agricultural - Household/hh_data/raw files"
+hh.data <- list.files(data.dir.hh)
+
+section.names.hh <- c("secA", "secB", "secC", "secE", "secHV1", "secHV2",
                    "sec_I", "secJ1", "secJ2", "secK1", "secK2",
                    "secL", "secN", "secU")
 
 
-all.hh <- lapply(section.names, getData, data.dir=data.dir, file.list=hh.data)
+all.hh <- lapply(section.names.hh, getData, data.dir=data.dir.hh,
+                 file.list=hh.data)
 
-
-indiv.data <- sapply(all.hh, function(x) all(shared.colnames %in% colnames(x)))
+indiv.data <- sapply(all.hh, function(x) all(shared.names.hh %in% colnames(x)))
 indiv.lev <- all.hh[indiv.data]
 house.lev <- all.hh[!indiv.data]
 
-indiv.merge <- Reduce(function(x, y) merge(x, y, by=shared.colnames),
+indiv.merge <- Reduce(function(x, y) merge(x, y, by=shared.names.hh),
                       indiv.lev)
 
 house.merge <- Reduce(function(x, y) merge(x, y,
-                                           by=shared.colnames[-8]),
+                                           by=shared.names.hh[-8]),
                       house.lev)
 
 hh <- merge(indiv.merge, house.merge)
 
 save(hh, file=file.path(save.dir, "hh.Rdata"))
+
+## *****************************************************************
+## ag. data
+## *****************************************************************
+
+data.dir.ag <- "../../data/Agricultural - Household/ag_data"
+
+ag.data <- list.files(data.dir.ag)
+
+
+section.names.ag <- c("member_roster", "field_roster",
+                      "field_details_lab", "sec3_field_details",
+                      "sec4_crops_by_field", "crops_by_hh",
+                      "permanent_crops_by_field",
+                      "permanent_crops_by_crop", "byproducts",
+                      "livestock_by_field", "10a_livestock",
+                      "10b_livestock", "implements", "12_extension",
+                      "extension_family", "secA_")
+
+all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,
+                 file.list=ag.data)
+
+## crop level
+
+field.lev <- sapply(all.ag, function(x) "Field.ID" %in% colnames(x))
+field.merge <- Reduce(function(x, y) merge(x, y),
+                      all.ag[field.lev])
+
+indiv.lev <- sapply(all.ag, function(x) "Individual.ID" %in%
+                                        colnames(x)) & !field.lev
+indiv.merge <- Reduce(function(x, y) merge(x, y),
+                      all.ag[indiv.lev])
+
+crop.lev <- sapply(all.ag, function(x) "Crop.ID" %in%
+                                        colnames(x)) & !field.lev & ! indiv.lev
+crop.merge <- Reduce(function(x, y) merge(x, y),
+                     all.ag[crop.lev])
+
+house.lev <- !field.lev & !crop.lev & !indiv.lev
+house.merge <- Reduce(function(x, y) merge(x, y),
+                      all.ag[house.lev])
+
+
+
+data.prep1 <- merge(indiv.merge, field.merge, all=TRUE)
+data.prep2 <- merge(data.prep1, crop.merge, all=TRUE)
+ag <- merge(data.prep2, house.merge, all=TRUE)
+
+save(ag, file=file.path(save.dir, "ag.Rdata"))
