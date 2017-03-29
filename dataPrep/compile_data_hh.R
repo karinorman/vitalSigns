@@ -41,4 +41,4 @@ house.merge <- Reduce(function(x, y) merge(x, y,
 
 hh <- merge(indiv.merge, house.merge)
 
-save(hh, file=)
+save(hh, file=file.path(save.dir, "hh.Rdata"))
