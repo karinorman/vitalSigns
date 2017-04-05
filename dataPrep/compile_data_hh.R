@@ -43,6 +43,8 @@ house.merge <- Reduce(function(x, y) merge(x, y,
 
 hh <- merge(indiv.merge, house.merge)
 
+hh <- hh[!duplicated(hh),]
+
 save(hh, file=file.path(save.dir, "hh.Rdata"))
 
 ## *****************************************************************
@@ -54,8 +56,8 @@ data.dir.ag <- "../../data/Agricultural - Household/ag_data"
 ag.data <- list.files(data.dir.ag)
 
 
-section.names.ag <- c("member_roster", "field_roster",
-                      "field_details_lab", "sec3_field_details",
+section.names.ag <- c("field_roster",
+                       "sec3_field_details",
                       "sec4_crops_by_field", "crops_by_hh",
                       "permanent_crops_by_field",
                       "permanent_crops_by_crop", "byproducts",
@@ -66,30 +68,37 @@ section.names.ag <- c("member_roster", "field_roster",
 all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,
                  file.list=ag.data)
 
-## crop level
+all.ag <- lapply(all.ag, function(x){
+    x$Crop.type <- NULL
+    return(x)
+})
+
+
+## indiv.lev <- sapply(all.ag, function(x) "Individual.ID" %in%
+##                                         colnames(x))
+## indiv.merge <- Reduce(function(x, y) merge(x, y),
+##                       all.ag[indiv.lev])
+
 
 field.lev <- sapply(all.ag, function(x) "Field.ID" %in% colnames(x))
 field.merge <- Reduce(function(x, y) merge(x, y),
                       all.ag[field.lev])
 
-indiv.lev <- sapply(all.ag, function(x) "Individual.ID" %in%
-                                        colnames(x)) & !field.lev
-indiv.merge <- Reduce(function(x, y) merge(x, y),
-                      all.ag[indiv.lev])
 
 crop.lev <- sapply(all.ag, function(x) "Crop.ID" %in%
-                                        colnames(x)) & !field.lev & ! indiv.lev
+                                        colnames(x)) & !field.lev
 crop.merge <- Reduce(function(x, y) merge(x, y),
                      all.ag[crop.lev])
 
-house.lev <- !field.lev & !crop.lev & !indiv.lev
+house.lev <- !field.lev & !crop.lev
 house.merge <- Reduce(function(x, y) merge(x, y),
                       all.ag[house.lev])
 
 
+## data.prep1 <- merge(indiv.merge, field.merge, all=TRUE)
+data.prep1 <- merge(field.merge, crop.merge, all=TRUE)
+ag <- merge(data.prep1, house.merge, all=TRUE)
 
-data.prep1 <- merge(indiv.merge, field.merge, all=TRUE)
-data.prep2 <- merge(data.prep1, crop.merge, all=TRUE)
-ag <- merge(data.prep2, house.merge, all=TRUE)
+ag <- ag[!duplicated(ag),]
 
 save(ag, file=file.path(save.dir, "ag.Rdata"))

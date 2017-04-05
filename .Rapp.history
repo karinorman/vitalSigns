@@ -1,4 +1,48 @@
-shared.names.house
+10^3
+10^4
+kath.data <- c("x", "y")
+lauren.data <- c("x", "y")
+allsetwd("~/Dropbox/vitalSigns/analysis/vital_signs")#
+save.dir <- "../../saved/survey"#
+(kath.data %in% lauren.data)
+setwd("~/Dropbox/vitalSigns/analysis/vital_signs")#
+save.dir <- "../../saved/survey"
+load(file.path(save.dir, ag)
+)
+load(file.path(save.dir, "ag.Rdata"))
+head9ag
+head(ag)
+library(dplyr)
+to.replace <- c("ag3a_07", "ag3a_08_1", "ag3a_18", "ag3a_18b",#
+                "ag3a_23", "ag3a_24", "ag3a_33","ag3a_34")#
+#
+colnames(ag)[colnames(ag) %in% to.replace] <- c("erosion",#
+                                                "eros_type",#
+                                                "org_fert",#
+                                                "org_fert_type",#
+                                                "inorg_fert",#
+                                                "inorg_fert_type",#
+                                                "pest_herb",#
+                                                "pest_herb_type")
+colnames(ag)
+load(file.path(save.dir, "hh.Rdata"))
+head(ag)
+unique(ag$Household.ID)
+unique(ag$Individual.ID)
+unique(ag$Filed.ID)
+unique(ag$Field.ID)
+duplicated(ag$Individual.ID)
+unique(ag$Household.ID)
+ag[ag$Household.ID == "13sx7zZ45L7"]
+ag[ag$Household.ID == "13sx7zZ45L7",]
+unique(ag$Household.ID)
+ag[ag$Household.ID == "1YyZC8Zyxy7",]
+unique(ag$Household.ID)
+ag[ag$Household.ID == "2Q7MnSV2oJ5",]
+ag[ag$Household.ID == unique(ag$Household.ID)[4],]
+ag[ag$Household.ID == unique(ag$Household.ID)[5],]
+ag[ag$Household.ID == unique(ag$Household.ID)[10],]
+ag[ag$Household.ID == unique(ag$Household.ID)[15],]
 rm(list=ls())#
 setwd("~/Dropbox/vitalSigns/analysis/vital_signs")#
 save.dir <- "../../saved/survey"#
@@ -9,7 +53,43 @@ getData <- function(data.name, file.list, data.dir){#
     dats.csv <- lapply(dats, read.csv)#
     dats.csv <- do.call(rbind, dats.csv)#
     return(dats.csv)#
-}
+}#
+#
+shared.names.hh <-  c("Country", "Partner.Organization", "longitude",#
+                      "latitude", "Landscape..", "Household.ID",#
+                      "Data.entry.date", "Individual.ID")#
+## *****************************************************************#
+## household data#
+## *****************************************************************#
+#
+data.dir.hh <- "../../data/Agricultural - Household/hh_data/raw files"#
+hh.data <- list.files(data.dir.hh)#
+#
+section.names.hh <- c("secA", "secB", "secC", "secE", "secHV1", "secHV2",#
+                   "sec_I", "secJ1", "secJ2", "secK1", "secK2",#
+                   "secL", "secN", "secU")#
+all.hh <- lapply(section.names.hh, getData, data.dir=data.dir.hh,#
+                 file.list=hh.data)#
+#
+indiv.data <- sapply(all.hh, function(x) all(shared.names.hh %in% colnames(x)))#
+indiv.lev <- all.hh[indiv.data]#
+house.lev <- all.hh[!indiv.data]#
+#
+indiv.merge <- Reduce(function(x, y) merge(x, y, by=shared.names.hh),#
+                      indiv.lev)#
+#
+house.merge <- Reduce(function(x, y) merge(x, y,#
+                                           by=shared.names.hh[-8]),#
+                      house.lev)#
+#
+hh <- merge(indiv.merge, house.merge)#
+#
+save(hh, file=file.path(save.dir, "hh.Rdata"))#
+#
+## *****************************************************************#
+## ag. data#
+## *****************************************************************#
+#
 data.dir.ag <- "../../data/Agricultural - Household/ag_data"#
 #
 ag.data <- list.files(data.dir.ag)#
@@ -25,33 +105,58 @@ section.names.ag <- c("member_roster", "field_roster",#
 all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,#
                  file.list=ag.data)#
 #
-## household level to indiv level#
-shared.names.house <- shared.names.hh[-8]#
-#
 ## crop level#
-shared.names.crop <- c(shared.names.house, "Crop.ID")#
 #
-## field level#
-shared.names.field <- c(shared.names.crop,  "Field.ID")#
+field.lev <- sapply(all.ag, function(x) "Field.ID" %in% colnames(x))#
+field.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[field.lev])#
 #
-field.lev <- sapply(all.ag, function(x) all(shared.names.field %in%#
-                                            colnames(x)))#
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x))) & !field.lev#
+## indiv.lev <- sapply(all.ag, function(x) "Individual.ID" %in%#
+##                                         colnames(x)) & !field.lev#
+## indiv.merge <- Reduce(function(x, y) merge(x, y),#
+##                       all.ag[indiv.lev])#
 #
-house.lev <- sapply(all.ag, function(x) all(shared.names.house %in%#
-                                            colnames(x))) & !crop.lev&!field.lev
-v
-data.dir.hh <- "../../data/Agricultural - Household/hh_data/raw files"#
-hh.data <- list.files(data.dir.hh)#
+crop.lev <- sapply(all.ag, function(x) "Crop.ID" %in%#
+                                        colnames(x)) & !field.lev #
+crop.merge <- Reduce(function(x, y) merge(x, y),#
+                     all.ag[crop.lev])#
+#
+house.lev <- !field.lev & !crop.lev & !indiv.lev#
+house.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[house.lev])#
+data.prep1 <- merge(indiv.merge, field.merge, all=TRUE)#
+data.prep2 <- merge(data.prep1, crop.merge, all=TRUE)#
+ag <- merge(data.prep2, house.merge, all=TRUE)#
+#
+save(ag, file=file.path(save.dir, "ag.Rdata"))
+rm(list=ls())#
+setwd("~/Dropbox/vitalSigns/analysis/vital_signs")#
+save.dir <- "../../saved/survey"#
+#
+getData <- function(data.name, file.list, data.dir){#
+    dats <- paste(data.dir, file.list[grepl(data.name, file.list)],#
+                  sep="/")#
+    dats.csv <- lapply(dats, read.csv)#
+    dats.csv <- do.call(rbind, dats.csv)#
+    return(dats.csv)#
+}#
+#
 shared.names.hh <-  c("Country", "Partner.Organization", "longitude",#
                       "latitude", "Landscape..", "Household.ID",#
                       "Data.entry.date", "Individual.ID")#
+## *****************************************************************#
+## household data#
+## *****************************************************************#
+#
+data.dir.hh <- "../../data/Agricultural - Household/hh_data/raw files"#
+hh.data <- list.files(data.dir.hh)#
 #
 section.names.hh <- c("secA", "secB", "secC", "secE", "secHV1", "secHV2",#
                    "sec_I", "secJ1", "secJ2", "secK1", "secK2",#
                    "secL", "secN", "secU")#
-all.hh <- lapply(section.names.hh, getData, data.dir=data.dir.hh, file.list=hh.data)#
+all.hh <- lapply(section.names.hh, getData, data.dir=data.dir.hh,#
+                 file.list=hh.data)#
+#
 indiv.data <- sapply(all.hh, function(x) all(shared.names.hh %in% colnames(x)))#
 indiv.lev <- all.hh[indiv.data]#
 house.lev <- all.hh[!indiv.data]#
@@ -65,7 +170,83 @@ house.merge <- Reduce(function(x, y) merge(x, y,#
 #
 hh <- merge(indiv.merge, house.merge)#
 #
-save(hh, file=file.path(save.dir, "hh.Rdata"))
+save(hh, file=file.path(save.dir, "hh.Rdata"))#
+#
+## *****************************************************************#
+## ag. data#
+## *****************************************************************#
+#
+data.dir.ag <- "../../data/Agricultural - Household/ag_data"#
+#
+ag.data <- list.files(data.dir.ag)#
+section.names.ag <- c("member_roster", "field_roster",#
+                      "field_details_lab", "sec3_field_details",#
+                      "sec4_crops_by_field", "crops_by_hh",#
+                      "permanent_crops_by_field",#
+                      "permanent_crops_by_crop", "byproducts",#
+                      "livestock_by_field", "10a_livestock",#
+                      "10b_livestock", "implements", "12_extension",#
+                      "extension_family", "secA_")#
+#
+all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,#
+                 file.list=ag.data)#
+#
+## crop level#
+#
+field.lev <- sapply(all.ag, function(x) "Field.ID" %in% colnames(x))#
+field.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[field.lev])#
+#
+indiv.lev <- sapply(all.ag, function(x) "Individual.ID" %in%#
+                                        colnames(x)) & !field.lev#
+## indiv.merge <- Reduce(function(x, y) merge(x, y),#
+##                       all.ag[indiv.lev])#
+#
+crop.lev <- sapply(all.ag, function(x) "Crop.ID" %in%#
+                                        colnames(x)) & !field.lev#
+crop.merge <- Reduce(function(x, y) merge(x, y),#
+                     all.ag[crop.lev])#
+#
+house.lev <- !field.lev & !crop.lev & !indiv.lev#
+house.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[house.lev])#
+data.prep1 <- merge(field.merge, crop.merge, all=TRUE)#
+ag <- merge(data.prep1, house.merge, all=TRUE)#
+#
+save(ag, file=file.path(save.dir, "ag.Rdata"))
+head(ag)
+setwd("~/Dropbox/vitalSigns/analysis/vital_signs")#
+library(dplyr)#
+save.dir <- "../../saved/survey"#
+## *****************************************************************#
+## ag. data#
+## *****************************************************************#
+#
+load(file.path(save.dir, "ag.Rdata"))#
+#
+## simplify tenure classes#
+## set "shared-own" equal to "owned" (1)#
+ag$tenure <- ag$ag3a_14#
+ag$tenure[ag$tenure == 5] <- 1#
+## set non-ownership categories equal to 0#
+ag$tenure[ag$tenure > 1] <- 0#
+to.replace <- c("ag3a_07", "ag3a_08_1", "ag3a_18", "ag3a_18b",#
+                "ag3a_23", "ag3a_24", "ag3a_33","ag3a_34",#
+                "ag3a_25", "ag3a_19", "ag3a_35_1", "ag3a_35_2")#
+#
+colnames(ag)[colnames(ag) %in% to.replace] <- c("erosion",#
+                                                "eros_type",#
+                                                "org_fert",#
+                                                "org_fert_type",#
+                                                "inorg_fert",#
+                                                "inorg_fert_type",#
+                                                "pest_herb",#
+                                                "pest_herb_type",#
+                                                "inorg_fert_amount",#
+                                                "org_fert_amount",#
+                                                "pest_herb_amount",#
+                                                "pest_herb_unit")
+ag[ag$Household.ID == unique(ag$Household.ID)[10],]
 data.dir.ag <- "../../data/Agricultural - Household/ag_data"#
 #
 ag.data <- list.files(data.dir.ag)#
@@ -80,207 +261,30 @@ section.names.ag <- c("member_roster", "field_roster",#
 #
 all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,#
                  file.list=ag.data)
-## household level to indiv level#
-shared.names.house <- shared.names.hh[-8]#
-#
-## crop level#
-shared.names.crop <- c(shared.names.house, "Crop.ID")#
-#
-## field level#
-shared.names.field <- c(shared.names.crop,  "Field.ID")#
-#
-field.lev <- sapply(all.ag, function(x) all(shared.names.field %in%#
-                                            colnames(x)))#
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x))) & !field.lev#
-#
-house.lev <- sapply(all.ag, function(x) all(shared.names.house %in%#
-                                            colnames(x))) & !crop.lev&!field.lev
-house.lev
-lapply(all.ag, dim)
-field.merge <- Reduce(function(x, y) merge(x, y, by=shared.names.field),#
-                      all.ag[field.lev])#
-#
-crop.merge <- Reduce(function(x, y) merge(x, y, by=shared.names.crop),#
-                     all.ag[crop.lev])
-head(field.merge)
-lapply(all.ag, function(x)colnames(x)[1:10])
-indiv.lev <- sapply(all.ag, function(x) all(shared.names.hh %in%#
-                                            colnames(x))) & !crop.lev&!field.lev
-indiv.lev
-!crop.lev&!field.lev&!indiv.lev
-house.lev <-  !crop.lev & !field.lev & !indiv.lev
-field.merge <- Reduce(function(x, y) merge(x, y, by=shared.names.field),#
-                      all.ag[field.lev])#
-#
-crop.merge <- Reduce(function(x, y) merge(x, y, by=shared.names.crop),#
-                     all.ag[crop.lev])
-inidv.merge <- Reduce(function(x, y) merge(x, y, by=shared.names.hh),#
-                      all.ag[indiv.lev])
-indiv.merge <- Reduce(function(x, y) merge(x, y, by=shared.names.hh),#
-                      all.ag[indiv.lev])
-house.merge <- Reduce(function(x, y) merge(x, y, by=shared.names.house),#
-                      all.ag[house.lev])
-lapply(all.ag, function(x)colnames(x)[1:10])
-lapply(all.ag, function(x)colnames(x)[!colnames(x) %in% shared.names.house] )
+field.lev <- sapply(all.ag, function(x) "Field.ID" %in% colnames(x))#
 field.merge <- Reduce(function(x, y) merge(x, y),#
                       all.ag[field.lev])
-crop.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[crop.lev])
-indiv.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[indiv.lev])
-head(indiv.merge)
-house.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[house.lev])
-head(house.merge)
-prep.dat <- merge(indiv.merge, house.merge)
-prep.dat2 <- merge(field.merge, crop.merge)
-ag <- merge(prep.dat, prep.dat2)
-head(ag)
-data.dir.ag <- "../../data/Agricultural - Household/ag_data"#
-#
-ag.data <- list.files(data.dir.ag)#
-section.names.ag <- c("member_roster", "field_roster",#
-                      "field_details_lab", "sec3_field_details",#
-                      "sec4_crops_by_field", "crops_by_hh",#
-                      "permanent_crops_by_field",#
-                      "permanent_crops_by_crop", "byproducts",#
-                      "livestock_by_field", "10a_livestock",#
-                      "10b_livestock", "implements", "12_extension",#
-                      "extension_family", "secA_")#
-#
-all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,#
-                 file.list=ag.data)#
-#
-## household level to indiv level#
-shared.names.house <- shared.names.hh[-8]#
-#
-## crop level#
-shared.names.crop <- c(shared.names.house, "Crop.ID")#
-#
-## field level#
-shared.names.field <- c(shared.names.crop,  "Field.ID")#
-#
-field.lev <- sapply(all.ag, function(x) all(shared.names.field %in%#
-                                            colnames(x)))#
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x))) & !field.lev#
-#
-indiv.lev <- sapply(all.ag, function(x) all(shared.names.hh %in%#
-                                            colnames(x))) & !crop.lev&!field.lev#
-#
-house.lev <-  !crop.lev & !field.lev & !indiv.lev#
-#
-field.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[field.lev])#
-#
-crop.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[crop.lev])#
-#
-indiv.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[indiv.lev])#
-#
-house.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[house.lev])#
-prep.dat <- merge(indiv.merge, house.merge)#
-#
-prep.dat2 <- merge(field.merge, crop.merge)#
-#
-ag <- merge(prep.dat, prep.dat2)
-head(ag)
-head(prep.day)
-head(prep.dat)
-dim(prep.dat)
-dim(prep.dat2)
-head(prep.dat)
-head(prep.dat2)
-?merge
-intersect(names(prep.dat), names(prep.dat2))
-fiel.lev
 field.lev
-data.dir.ag <- "../../data/Agricultural - Household/ag_data"#
-#
-ag.data <- list.files(data.dir.ag)#
-section.names.ag <- c("member_roster", "field_roster",#
-                      "field_details_lab", "sec3_field_details",#
-                      "sec4_crops_by_field", "crops_by_hh",#
-                      "permanent_crops_by_field",#
-                      "permanent_crops_by_crop", "byproducts",#
-                      "livestock_by_field", "10a_livestock",#
-                      "10b_livestock", "implements", "12_extension",#
-                      "extension_family", "secA_")#
-#
-all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,#
-                 file.list=ag.data)#
-#
-## household level to indiv level#
-shared.names.house <- shared.names.hh[-8]#
-#
-## crop level#
-shared.names.crop <- c(shared.names.house, "Crop.ID")#
-#
-## field level#
-shared.names.field <- c(shared.names.house,  "Field.ID")#
-#
-field.lev <- sapply(all.ag, function(x) all(shared.names.field %in%#
-                                            colnames(x)))#
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x))) & !field.lev#
-#
-indiv.lev <- sapply(all.ag, function(x) all(shared.names.hh %in%#
-                                            colnames(x))) & !crop.lev&!field.lev#
-#
-house.lev <-  !crop.lev & !field.lev & !indiv.lev#
-#
-field.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[field.lev])#
-#
-crop.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[crop.lev])#
-#
-indiv.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[indiv.lev])#
-#
-house.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[house.lev])#
-prep.dat <- merge(indiv.merge, house.merge)#
-#
-prep.dat2 <- merge(field.merge, crop.merge)
-intersect(names(prep.dat), names(prep.dat2))
-ag <- merge(prep.dat, prep.dat2)
-head(ag)
-intersect(names(prep.dat), names(prep.dat2))
-head(prep.dat)
-colnames(prep.dat)
-field.lev <- sapply(all.ag, function(x) all(shared.names.field %in%#
-                                            colnames(x)))
-field.lev
-indiv.lev <- sapply(all.ag, function(x) all(shared.names.hh %in%#
-                                            colnames(x))) & !crop.lev&!field.lev
+indiv.lev <- sapply(all.ag, function(x) "Individual.ID" %in%#
+                                        colnames(x)) & !field.lev
 indiv.lev
-## field level#
-shared.names.field <- c(shared.names.house,  "Field.ID")#
-#
-field.lev <- sapply(all.ag, function(x) all(shared.names.field %in%#
-                                            colnames(x)))#
-#
-indiv.lev <- sapply(all.ag, function(x) all(shared.names.hh %in%#
-                                            colnames(x))) & !field.lev#
-#
-house.lev <-  !field.lev & !indiv.lev#
-#
+field.lev <- sapply(all.ag, function(x) "Field.ID" %in% colnames(x)) & !indiv.lev#
 field.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[field.lev])#
+                      all.ag[field.lev])
+crop.lev <- sapply(all.ag, function(x) "Crop.ID" %in%#
+                                        colnames(x)) & !field.lev#
+crop.merge <- Reduce(function(x, y) merge(x, y),#
+                     all.ag[crop.lev])#
 #
-indiv.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[indiv.lev])#
-#
+house.lev <- !field.lev & !crop.lev & !indiv.lev#
 house.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[house.lev])
-prep.dat <- merge(indiv.merge, house.merge)#
+                      all.ag[house.lev])#
+## data.prep1 <- merge(indiv.merge, field.merge, all=TRUE)#
+data.prep1 <- merge(field.merge, crop.merge, all=TRUE)#
+ag <- merge(data.prep1, house.merge, all=TRUE)#
 #
-prep.dat2 <- merge(field.merge, crop.merge)
-intersect(names(prep.dat), names(prep.dat2))
+save(ag, file=file.path(save.dir, "ag.Rdata"))
+ag[ag$Household.ID == unique(ag$Household.ID)[10],]
 data.dir.ag <- "../../data/Agricultural - Household/ag_data"#
 #
 ag.data <- list.files(data.dir.ag)#
@@ -296,87 +300,265 @@ section.names.ag <- c("member_roster", "field_roster",#
 all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,#
                  file.list=ag.data)#
 #
-## household level to indiv level#
-shared.names.house <- shared.names.hh[-8]#
-#
 ## crop level#
-shared.names.crop <- c(shared.names.house, "Crop.ID")#
 #
-## field level#
-shared.names.field <- c(shared.names.house,  "Field.ID")#
-#
-field.lev <- sapply(all.ag, function(x) all(shared.names.field %in%#
-                                            colnames(x)))#
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x))) & !field.lev#
-#
-indiv.lev <- sapply(all.ag, function(x) all(shared.names.hh %in%#
-                                            colnames(x))) & !crop.lev&!field.lev#
-#
-house.lev <-  !crop.lev & !field.lev & !indiv.lev#
-#
+indiv.lev <- sapply(all.ag, function(x) "Individual.ID" %in%#
+                                        colnames(x))#
+## indiv.merge <- Reduce(function(x, y) merge(x, y),#
+##                       all.ag[indiv.lev])#
+field.lev <- sapply(all.ag, function(x) "Field.ID" %in% colnames(x)) & !indiv.lev#
 field.merge <- Reduce(function(x, y) merge(x, y),#
                       all.ag[field.lev])#
-#
+crop.lev <- sapply(all.ag, function(x) "Crop.ID" %in%#
+                                        colnames(x)) & !field.lev & !indiv.lev#
 crop.merge <- Reduce(function(x, y) merge(x, y),#
                      all.ag[crop.lev])#
 #
-indiv.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[indiv.lev])#
-#
-house.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[house.lev])
-field.lev
-crop.lev
-indiv.lev
-indiv.lev <- sapply(all.ag, function(x) all(shared.names.hh %in%#
-                                            colnames(x))) #
-#
-house.lev <-  !crop.lev & !field.lev & !indiv.lev
-field.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[field.lev])#
-#
-crop.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[crop.lev])#
-#
-indiv.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[indiv.lev])#
-#
+house.lev <- !field.lev & !crop.lev & !indiv.lev#
 house.merge <- Reduce(function(x, y) merge(x, y),#
                       all.ag[house.lev])#
-prep.dat <- merge(indiv.merge, house.merge)#
+## data.prep1 <- merge(indiv.merge, field.merge, all=TRUE)#
+data.prep1 <- merge(field.merge, crop.merge, all=TRUE)#
+ag <- merge(data.prep1, house.merge, all=TRUE)#
 #
-prep.dat2 <- merge(field.merge, crop.merge)
-intersect(names(prep.dat), names(prep.dat2))
-ag <- merge(prep.dat, prep.dat2)
+save(ag, file=file.path(save.dir, "ag.Rdata"))
+ag[ag$Household.ID == unique(ag$Household.ID)[10],]
+data.dir.ag <- "../../data/Agricultural - Household/ag_data"#
+#
+ag.data <- list.files(data.dir.ag)#
+section.names.ag <- c("member_roster", "field_roster",#
+                      "field_details_lab", "sec3_field_details",#
+                      "sec4_crops_by_field", "crops_by_hh",#
+                      "permanent_crops_by_field",#
+                      "permanent_crops_by_crop", "byproducts",#
+                      "livestock_by_field", "10a_livestock",#
+                      "10b_livestock", "implements", "12_extension",#
+                      "extension_family", "secA_")#
+#
+all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,#
+                 file.list=ag.data)#
+#
+all.ag$Crop.type <- NULL#
+## crop level#
+#
+indiv.lev <- sapply(all.ag, function(x) "Individual.ID" %in%#
+                                        colnames(x))#
+## indiv.merge <- Reduce(function(x, y) merge(x, y),#
+##                       all.ag[indiv.lev])#
+field.lev <- sapply(all.ag, function(x) "Field.ID" %in% colnames(x)) & !indiv.lev#
+field.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[field.lev])#
+crop.lev <- sapply(all.ag, function(x) "Crop.ID" %in%#
+                                        colnames(x)) & !field.lev & !indiv.lev#
+crop.merge <- Reduce(function(x, y) merge(x, y),#
+                     all.ag[crop.lev])#
+#
+house.lev <- !field.lev & !crop.lev & !indiv.lev#
+house.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[house.lev])#
+## data.prep1 <- merge(indiv.merge, field.merge, all=TRUE)#
+data.prep1 <- merge(field.merge, crop.merge, all=TRUE)#
+ag <- merge(data.prep1, house.merge, all=TRUE)#
+#
+save(ag, file=file.path(save.dir, "ag.Rdata"))
+ag[ag$Household.ID == unique(ag$Household.ID)[10],]
+length(all.ag)
+all.ag <- lapply(all.ag, function(x) x$Crop.type <- NULL)#
+#
+## crop level#
+#
+indiv.lev <- sapply(all.ag, function(x) "Individual.ID" %in%#
+                                        colnames(x))#
+## indiv.merge <- Reduce(function(x, y) merge(x, y),#
+##                       all.ag[indiv.lev])#
+field.lev <- sapply(all.ag, function(x) "Field.ID" %in% colnames(x)) & !indiv.lev#
+field.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[field.lev])#
+crop.lev <- sapply(all.ag, function(x) "Crop.ID" %in%#
+                                        colnames(x)) & !field.lev & !indiv.lev#
+crop.merge <- Reduce(function(x, y) merge(x, y),#
+                     all.ag[crop.lev])#
+#
+house.lev <- !field.lev & !crop.lev & !indiv.lev#
+house.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[house.lev])#
+## data.prep1 <- merge(indiv.merge, field.merge, all=TRUE)#
+data.prep1 <- merge(field.merge, crop.merge, all=TRUE)#
+ag <- merge(data.prep1, house.merge, all=TRUE)#
+#
+save(ag, file=file.path(save.dir, "ag.Rdata"))
+length(all.ag)
+ag[ag$Household.ID == unique(ag$Household.ID)[10],]
+all.ag <- lapply(all.ag, function(x){#
+    x$Crop.type <- NULL#
+    return(x)#
+})
+data.dir.ag <- "../../data/Agricultural - Household/ag_data"#
+#
+ag.data <- list.files(data.dir.ag)#
+section.names.ag <- c("member_roster", "field_roster",#
+                      "field_details_lab", "sec3_field_details",#
+                      "sec4_crops_by_field", "crops_by_hh",#
+                      "permanent_crops_by_field",#
+                      "permanent_crops_by_crop", "byproducts",#
+                      "livestock_by_field", "10a_livestock",#
+                      "10b_livestock", "implements", "12_extension",#
+                      "extension_family", "secA_")#
+#
+all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,#
+                 file.list=ag.data)#
+#
+all.ag <- lapply(all.ag, function(x){#
+    x$Crop.type <- NULL#
+    return(x)#
+})#
+#
+## crop level#
+#
+indiv.lev <- sapply(all.ag, function(x) "Individual.ID" %in%#
+                                        colnames(x))#
+## indiv.merge <- Reduce(function(x, y) merge(x, y),#
+##                       all.ag[indiv.lev])#
+field.lev <- sapply(all.ag, function(x) "Field.ID" %in% colnames(x)) & !indiv.lev#
+field.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[field.lev])#
+crop.lev <- sapply(all.ag, function(x) "Crop.ID" %in%#
+                                        colnames(x)) & !field.lev & !indiv.lev#
+crop.merge <- Reduce(function(x, y) merge(x, y),#
+                     all.ag[crop.lev])#
+#
+house.lev <- !field.lev & !crop.lev & !indiv.lev#
+house.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[house.lev])#
+## data.prep1 <- merge(indiv.merge, field.merge, all=TRUE)#
+data.prep1 <- merge(field.merge, crop.merge, all=TRUE)#
+ag <- merge(data.prep1, house.merge, all=TRUE)#
+#
+save(ag, file=file.path(save.dir, "ag.Rdata"))
+ag[ag$Household.ID == unique(ag$Household.ID)[10],]
+ag$Field.ID
+unqiue(ag$Field.ID)
+unique(ag$Field.ID)
+unique(paste(ag$Household.ID, ag$Field.ID))
+ag$house_field <- unique(paste(ag$Household.ID, ag$Field.ID, sep= "_"))
+ag$house_field <- paste(ag$Household.ID, ag$Field.ID, sep= "_")
+ag <- ag[!duplicated(ag$house_field)]
+ag$house_field <- paste(ag$Household.ID, ag$Field.ID, sep= "_")#
+ag <- ag[!duplicated(ag$house_field)]
+ag <- ag[!duplicated(ag$house_field),]
+save(ag, file=file.path(save.dir, "ag.Rdata"))
+ag[ag$Household.ID == unique(ag$Household.ID)[10],]
+rm(list=ls())#
+setwd("~/Dropbox/vitalSigns/analysis/vital_signs")#
+library(dplyr)#
+save.dir <- "../../saved/survey"#
+## *****************************************************************#
+## ag. data#
+## *****************************************************************#
+#
+load(file.path(save.dir, "ag.Rdata"))#
+#
+## simplify tenure classes#
+## set "shared-own" equal to "owned" (1)#
+ag$tenure <- ag$ag3a_14#
+ag$tenure[ag$tenure == 5] <- 1#
+## set non-ownership categories equal to 0#
+ag$tenure[ag$tenure > 1] <- 0#
+to.replace <- c("ag3a_07", "ag3a_08_1", "ag3a_18", "ag3a_18b",#
+                "ag3a_23", "ag3a_24", "ag3a_33","ag3a_34",#
+                "ag3a_25", "ag3a_19", "ag3a_35_1", "ag3a_35_2")#
+#
+colnames(ag)[colnames(ag) %in% to.replace] <- c("erosion",#
+                                                "eros_type",#
+                                                "org_fert",#
+                                                "org_fert_type",#
+                                                "inorg_fert",#
+                                                "inorg_fert_type",#
+                                                "pest_herb",#
+                                                "pest_herb_type",#
+                                                "inorg_fert_amount",#
+                                                "org_fert_amount",#
+                                                "pest_herb_amount",#
+                                                "pest_herb_unit")
+head(ag)
+ag$field_perim <- ag$field_steps*ag$person_step#
+ag$org_fert_den <- ag$org_fert/ag$farmer_field_est#
+ag$inorg_fert_den <- ag$inorg_fert/ag$farmer_field_est
+rm(list=ls())#
+setwd("~/Dropbox/vitalSigns/analysis/vital_signs")#
+library(dplyr)#
+save.dir <- "../../saved/survey"#
+## *****************************************************************#
+## ag. data#
+## *****************************************************************#
+#
+load(file.path(save.dir, "ag.Rdata"))#
+#
+## simplify tenure classes#
+## set "shared-own" equal to "owned" (1)#
+ag$tenure <- ag$ag3a_14#
+ag$tenure[ag$tenure == 5] <- 1#
+## set non-ownership categories equal to 0#
+ag$tenure[ag$tenure > 1] <- 0#
+to.replace <- c("ag3a_07", "ag3a_08_1", "ag3a_18", "ag3a_18b",#
+                "ag3a_23", "ag3a_24", "ag3a_33","ag3a_34",#
+                "ag3a_25", "ag3a_19", "ag3a_35_1", "ag3a_35_2",#
+                "ag2a_vs_8b", "ag2a_vs_8c", "ag2a_04")#
+#
+colnames(ag)[colnames(ag) %in% to.replace] <- c("erosion",#
+                                                "eros_type",#
+                                                "org_fert",#
+                                                "org_fert_type",#
+                                                "inorg_fert",#
+                                                "inorg_fert_type",#
+                                                "pest_herb",#
+                                                "pest_herb_type",#
+                                                "inorg_fert_amount",#
+                                                "org_fert_amount",#
+                                                "pest_herb_amount",#
+                                                "pest_herb_unit",#
+                                                "field_steps",#
+                                                "person_step",#
+                                                "farmer_field_est")#
+#
+ag$field_perim <- ag$field_steps*ag$person_step#
+ag$org_fert_den <- ag$org_fert/ag$farmer_field_est#
+ag$inorg_fert_den <- ag$inorg_fert/ag$farmer_field_est
+ag$person_step
+ag$field_steps
+load(file.path(save.dir, "ag.Rdata"))#
+#
+## simplify tenure classes#
+## set "shared-own" equal to "owned" (1)#
+ag$tenure <- ag$ag3a_14#
+ag$tenure[ag$tenure == 5] <- 1#
+## set non-ownership categories equal to 0#
+ag$tenure[ag$tenure > 1] <- 0#
+to.replace <- c("ag3a_07", "ag3a_08_1", "ag3a_18", "ag3a_18b",#
+                "ag3a_23", "ag3a_24", "ag3a_33","ag3a_34",#
+                "ag3a_25", "ag3a_19", "ag3a_35_1", "ag3a_35_2",#
+                "ag2a_vs_8b", "ag2a_vs_8c", "ag2a_04")#
+#
+colnames(ag)[colnames(ag) %in% to.replace] <- c("erosion",#
+                                                "eros_type",#
+                                                "org_fert",#
+                                                "org_fert_type",#
+                                                "inorg_fert",#
+                                                "inorg_fert_type",#
+                                                "pest_herb",#
+                                                "pest_herb_type",#
+                                                "inorg_fert_amount",#
+                                                "org_fert_amount",#
+                                                "pest_herb_amount",#
+                                                "pest_herb_unit",#
+                                                "field_steps",#
+                                                "person_step",#
+                                                "farmer_field_est")#
+#
+ag$org_fert_den <- ag$org_fert/ag$farmer_field_est#
+ag$inorg_fert_den <- ag$inorg_fert/ag$farmer_field_est
+ag$farmer_field_est
 dim(ag)
-crop.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[crop.lev | field.lev])
-dim(crop.merge)
-crop.merge
-field.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[field.lev])#
-#
-crop.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[crop.lev])#
-#
-indiv.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[indiv.lev])#
-#
-house.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[house.lev])
-colnames(field.merge)
-colnames(crop.merge)
-colnames(indiv.merge)
-colnames(house.merge)
-prep.dat <- merge(indiv.merge, house.merge)#
-#
-prep.dat2 <- merge(field.merge, crop.merge)
-intersect(names(prep.dat), names(prep.dat2))
-prep.dat1 <- merge(field.merge, crop.merge)#
-prep.dat2 <- merge(indiv.merge, prep.dat1)
-head(prep.dat2)
-head(prep.dat1)
 data.dir.ag <- "../../data/Agricultural - Household/ag_data"#
 #
 ag.data <- list.files(data.dir.ag)#
@@ -392,380 +574,15 @@ section.names.ag <- c("member_roster", "field_roster",#
 all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,#
                  file.list=ag.data)#
 #
-## household level to indiv level#
-shared.names.house <- shared.names.hh[-8]#
+all.ag <- lapply(all.ag, function(x){#
+    x$Crop.type <- NULL#
+    return(x)#
+})#
 #
 ## crop level#
-shared.names.crop <- c(shared.names.house, "Crop.ID")#
 #
-## field level#
-shared.names.field <- c(shared.names.house,  "Field.ID")#
-#
-field.lev <- sapply(all.ag, function(x) all(shared.names.field %in%#
-                                            colnames(x)))#
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x))) & !field.lev#
-#
-indiv.lev <- sapply(all.ag, function(x) all(shared.names.hh %in%#
-                                            colnames(x)))#
-#
-house.lev <-  !crop.lev & !field.lev & !indiv.lev#
-#
-field.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[field.lev])#
-#
-crop.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[crop.lev])#
-#
-indiv.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[indiv.lev])#
-#
-house.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[house.lev])#
-prep.dat1 <- merge(field.merge, crop.merge)
-head(prep.dat1)
-prep.dat1 <- Reduce(function(x, y) merge(x, y),#
-                      list(field.merge, crop.merge))
-head(prep.dat1)
-field.merge
-head(field.merge)
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x))) | !field.lev
-crop.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[crop.lev])
-head(crop.merge)
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x))) | field.lev
-crop.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[crop.lev])
-head(crop.merge)
-fiel.lev
-field.lev
-crop.lev
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x))) & !field.lev
-crop.lev
-indiv.lev <- sapply(all.ag, function(x) all(shared.names.hh %in%#
-                                            colnames(x)))
-indiv.lev
-field.lev
-field.lev <- sapply(all.ag, function(x) all(shared.names.field %in%#
-                                            colnames(x)))#
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x))) & !field.lev#
-#
-indiv.lev <- sapply(all.ag, function(x) all(shared.names.hh %in%#
-                                            colnames(x))) & !field.lev &!crop.lev #
-#
-house.lev <-  !crop.lev & !field.lev & !indiv.lev#
-#
-field.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[field.lev])#
-#
-crop.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[crop.lev])#
-#
-indiv.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[indiv.lev])#
-#
-house.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[house.lev])
-head(field.merge)
-head(crop.merge)
-head(indiv.merge)
-head(house.merge)
-prep.dat1 <- merge(field.merge, crop.merge)
-head(prep.dat1)
-field.merge
-head(field.merge)
-colnames(field.merge)
-colnames(crop.merge)
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x)))
-head(crop.lev)
-crop.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[crop.lev])
-head(crop.merge)
-prep.dat1 <- merge(crop.merge, indiv.merge)
-head(prep.dat1)
-data.dir.ag <- "../../data/Agricultural - Household/ag_data"#
-#
-ag.data <- list.files(data.dir.ag)#
-section.names.ag <- c("member_roster", "field_roster",#
-                      "field_details_lab", "sec3_field_details",#
-                      "sec4_crops_by_field", "crops_by_hh",#
-                      "permanent_crops_by_field",#
-                      "permanent_crops_by_crop", "byproducts",#
-                      "livestock_by_field", "10a_livestock",#
-                      "10b_livestock", "implements", "12_extension",#
-                      "extension_family", "secA_")#
-#
-all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,#
-                 file.list=ag.data)#
-#
-## household level to indiv level#
-shared.names.house <- shared.names.hh[-8]#
-#
-## crop level#
-shared.names.crop <- c(shared.names.house, "Crop.ID")#
-#
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x)))#
-#
-indiv.lev <- sapply(all.ag, function(x) all(shared.names.hh %in%#
-                                            colnames(x))) &!crop.lev
-house.lev <-  !crop.lev & !indiv.lev#
-#
-crop.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[crop.lev])#
-#
-indiv.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[indiv.lev])#
-#
-house.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[house.lev])
-prep.dat1 <- merge(crop.merge, indiv.merge)
-head(prep.dat1)
-prep.dat2 <- merge(prep.dat1, house.merge)
-head(prep.dat2)
-head(prep.dat1)
-intersect(names(pre.dat1, house.merge)
-)
-intersect(names(pre.dat1), names(house.merge))
-intersect(names(prep.dat1), names(house.merge))
-house.lev
-crop.lev
-indiv.lev
-house.lev
-house.lev <-  !crop.lev | !indiv.lev
-house.lev
-house.lev <-  crop.lev | indiv.lev
-house.lev
-house.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[!house.lev])
-prep.dat1 <- merge(crop.merge, indiv.merge)#
-prep.dat2 <- merge(prep.dat1, house.merge)
-head(prep.dat2)
-intersect(names(pre.dat1), names(house.merge))
-intersect(names(prep.dat1), names(house.merge))
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x)))#
-#
-indiv.lev <- sapply(all.ag, function(x) all(shared.names.hh %in%#
-                                            colnames(x))) &!crop.lev #
-#
-house.lev <-  crop.lev | indiv.lev
-crop.lev
-indiv.lev
-!house.lev
-## crop level#
-shared.names.crop <- c(shared.names.house, "Crop.ID")#
-shared.names.field <- c(shared.names.house, "Field.ID")#
-#
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x)) | shared.names.field %in%#
-                                           colnames(x)))#
-#
-indiv.lev <- sapply(all.ag, function(x) all(shared.names.hh %in%#
-                                            colnames(x))) &!crop.lev #
-#
-house.lev <-  crop.lev | indiv.lev#
-#
-crop.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[crop.lev])#
-#
-indiv.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[indiv.lev])#
-#
-house.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[!house.lev])#
-prep.dat1 <- merge(crop.merge, indiv.merge)
-intersect(names(prep.dat1), names(house.merge))
-crop.lev
-house.lev
-!house.lev
-crop.lev
-colnames(house.merge)
-lapply(all.ag[!house.lev], colnames)
-colnames(all.ag)
-lapply(all.ag, colnames)
-crop.lev
-shared.names.field <- c(shared.names.house, "Field.ID")
-shared.names.field
-colnames(all.ag[[10]])
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x))) | all(shared.names.field %in%#
-                                           colnames(x))))
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x)) | all(shared.names.field %in%#
-                                           colnames(x)))
-crop.lev
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x)) | all(shared.names.field %in%#
-                                           colnames(x)))#
-#
-indiv.lev <- sapply(all.ag, function(x) all(shared.names.hh %in%#
-                                            colnames(x))) &!crop.lev #
-#
-house.lev <-  crop.lev | indiv.lev#
-#
-crop.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[crop.lev])#
-#
-indiv.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[indiv.lev])#
-#
-house.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[!house.lev])#
-prep.dat1 <- merge(crop.merge, indiv.merge)#
-prep.dat2 <- merge(prep.dat1, house.merge)
-head(prep.dat2)
-head(prep.dat1)
-head(crop.merge)
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x)))
-crop.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[crop.lev])
-head(crop.merge)
-crop.merge <- merge(crop.merge, all.ag[[10]])
-head(crop.merge)
-house.lev
-!house.lev
-## crop level#
-shared.names.crop <- c(shared.names.house, "Crop.ID")#
-shared.names.field <- c(shared.names.house, "Field.ID")#
-#
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x)))#
-#
-indiv.lev <- sapply(all.ag, function(x) all(shared.names.hh %in%#
-                                            colnames(x))) &!crop.lev#
-#
-house.lev <-  crop.lev | indiv.lev
-!house.lev
-house[10] <- FALSE
-house.lev[10] <- FALSE
-data.dir.ag <- "../../data/Agricultural - Household/ag_data"#
-#
-ag.data <- list.files(data.dir.ag)#
-section.names.ag <- c("member_roster", "field_roster",#
-                      "field_details_lab", "sec3_field_details",#
-                      "sec4_crops_by_field", "crops_by_hh",#
-                      "permanent_crops_by_field",#
-                      "permanent_crops_by_crop", "byproducts",#
-                      "livestock_by_field", "10a_livestock",#
-                      "10b_livestock", "implements", "12_extension",#
-                      "extension_family", "secA_")#
-#
-all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,#
-                 file.list=ag.data)#
-#
-## crop level#
-shared.names.crop <- c(shared.names.house, "Crop.ID")#
-shared.names.field <- c(shared.names.house, "Field.ID")#
-#
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x)))#
-#
-indiv.lev <- sapply(all.ag, function(x) all(shared.names.hh %in%#
-                                            colnames(x))) &!crop.lev#
-#
-house.lev <-  crop.lev | indiv.lev#
-house.lev[10] <- FALSE#
-#
-crop.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[crop.lev])#
-crop.merge <- merge(crop.merge, all.ag[[10]])#
-#
-indiv.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[indiv.lev])#
-#
-house.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[!house.lev])
-prep.dat1 <- merge(crop.merge, indiv.merge)
-prep.dat2 <- merge(prep.dat1, house.merge)
-head(prep.dat2)
-intersect(names(prep.dat1, house.merge))
-intersect(names(prep.dat1), names(house.merge))
-house.lev <-  crop.lev | indiv.lev
-house.lev
-house.lev[10] <- TRUE
-house.lev
-!house.lev
-house.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[!house.lev])
-colnames(house.merge)
-crop.lev
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x)))#
-#
-house.lev <-  !crop.lev #
-house.lev[10] <- TRUE
-house.lev <-  !crop.lev #
-house.lev[10] <- FALSE
-house.lev
-crop.lev
-crop.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[crop.lev])#
-crop.merge <- merge(crop.merge, all.ag[[10]])#
-#
-indiv.merge <- Reduce(function(x, y) merge(x, y),#
-                      all.ag[house.lev])
-head(indiv.merge)
-head(crop.merge)
-prep.dat1 <- merge(crop.merge, indiv.merge)
-head(prep.dat1)
-intersect(names(crop.merge), names(indiv.merge))
-lapply(all.ag, function(x) colnames(x) %in% "Field.ID")
-lapply(all.ag, function(x) any(colnames(x) %in% "Field.ID"))
-sapply(all.ag, function(x) any(colnames(x) %in% "Field.ID"))
-house.lev
-shared.names.crop <- c(shared.names.house, "Crop.ID")#
-#
-crop.lev <- sapply(all.ag, function(x) all(shared.names.crop %in%#
-                                           colnames(x)))
-crop.lev
-field.lev <- sapply(all.ag, function(x) all(shared.names.field %in%#
-                                           colnames(x)))
-field.lev
-field.lev <- sapply(all.ag, function(x) all(shared.names.field %in%#
-                                           colnames(x))) & !crop.lev
-field.lev
-crop.lev
-field.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[field.lev])
-head(field.merge)
-merge(field.merge, crop.merge)
-field.lev
-intersect(#
-field.lev <- sapply(all.ag, function(x) all(shared.names.field %in%#
-                                            colnames(x))) & !crop.lev#
-field.lev[10] <- FALSE#
-)
-field.lev <- sapply(all.ag, function(x) all(shared.names.field %in%#
-                                            colnames(x)) & !crop.lev)
-field.lev
-field.lev <- sapply(all.ag, function(x) all(shared.names.field %in%#
-                                            colnames(x)) & !crop.lev)
-field.lev
-field.lev <- sapply(all.ag, function(x) all(shared.names.field %in%#
-                                            colnames(x))) & !crop.lev
-field.lev
-field.lev[10] <- FALSE
-crop.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[crop.lev])#
-field.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[field.lev])
-merge(field.merge, crop.merge)
-merge(crop.merge, field.merge)
-shared.names.field <- c(shared.names.house, "Field.ID")
-field.lev <- sapply(all.ag, function(x) all(shared.names.field %in%#
-                                            colnames(x)))
-field.lev
-field.merge <- Reduce(function(x, y) merge(x, y),#
-                     all.ag[field.lev])
-head(field.merge)
-rm(list=ls())
+indiv.lev <- sapply(all.ag, function(x) "Individual.ID" %in%#
+                                        colnames(x))
 rm(list=ls())#
 setwd("~/Dropbox/vitalSigns/analysis/vital_signs")#
 save.dir <- "../../saved/survey"#
@@ -777,10 +594,361 @@ getData <- function(data.name, file.list, data.dir){#
     dats.csv <- do.call(rbind, dats.csv)#
     return(dats.csv)#
 }#
+#
 shared.names.hh <-  c("Country", "Partner.Organization", "longitude",#
                       "latitude", "Landscape..", "Household.ID",#
                       "Data.entry.date", "Individual.ID")
-library(igraph)
-cite(igraph)
-cite("igraph")
-citation("igraph")
+data.dir.ag <- "../../data/Agricultural - Household/ag_data"#
+#
+ag.data <- list.files(data.dir.ag)#
+section.names.ag <- c("member_roster", "field_roster",#
+                      "field_details_lab", "sec3_field_details",#
+                      "sec4_crops_by_field", "crops_by_hh",#
+                      "permanent_crops_by_field",#
+                      "permanent_crops_by_crop", "byproducts",#
+                      "livestock_by_field", "10a_livestock",#
+                      "10b_livestock", "implements", "12_extension",#
+                      "extension_family", "secA_")#
+#
+all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,#
+                 file.list=ag.data)#
+#
+all.ag <- lapply(all.ag, function(x){#
+    x$Crop.type <- NULL#
+    return(x)#
+})#
+#
+## crop level#
+#
+indiv.lev <- sapply(all.ag, function(x) "Individual.ID" %in%#
+                                        colnames(x))#
+## indiv.merge <- Reduce(function(x, y) merge(x, y),#
+##                       all.ag[indiv.lev])
+indiv.merge
+indiv.level
+indiv.lev
+data.dir.ag <- "../../data/Agricultural - Household/ag_data"#
+#
+ag.data <- list.files(data.dir.ag)#
+section.names.ag <- c("field_roster",#
+                       "sec3_field_details",#
+                      "sec4_crops_by_field", "crops_by_hh",#
+                      "permanent_crops_by_field",#
+                      "permanent_crops_by_crop", "byproducts",#
+                      "livestock_by_field", "10a_livestock",#
+                      "10b_livestock", "implements", "12_extension",#
+                      "extension_family", "secA_")#
+#
+all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,#
+                 file.list=ag.data)
+all.ag <- lapply(all.ag, function(x){#
+    x$Crop.type <- NULL#
+    return(x)#
+})
+indiv.lev <- sapply(all.ag, function(x) "Individual.ID" %in%#
+                                        colnames(x))
+indiv.lev
+data.dir.ag <- "../../data/Agricultural - Household/ag_data"#
+#
+ag.data <- list.files(data.dir.ag)#
+section.names.ag <- c("field_roster",#
+                       "sec3_field_details",#
+                      "sec4_crops_by_field", "crops_by_hh",#
+                      "permanent_crops_by_field",#
+                      "permanent_crops_by_crop", "byproducts",#
+                      "livestock_by_field", "10a_livestock",#
+                      "10b_livestock", "implements", "12_extension",#
+                      "extension_family", "secA_")#
+#
+all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,#
+                 file.list=ag.data)#
+#
+all.ag <- lapply(all.ag, function(x){#
+    x$Crop.type <- NULL#
+    return(x)#
+})#
+#
+## crop level#
+#
+## indiv.lev <- sapply(all.ag, function(x) "Individual.ID" %in%#
+##                                         colnames(x))#
+## indiv.merge <- Reduce(function(x, y) merge(x, y),#
+##                       all.ag[indiv.lev])#
+field.lev <- sapply(all.ag, function(x) "Field.ID" %in% colnames(x))#
+field.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[field.lev])#
+crop.lev <- sapply(all.ag, function(x) "Crop.ID" %in%#
+                                        colnames(x)) & !field.lev#
+crop.merge <- Reduce(function(x, y) merge(x, y),#
+                     all.ag[crop.lev])#
+#
+house.lev <- !field.lev & !crop.lev#
+house.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[house.lev])#
+## data.prep1 <- merge(indiv.merge, field.merge, all=TRUE)#
+data.prep1 <- merge(field.merge, crop.merge, all=TRUE)#
+ag <- merge(data.prep1, house.merge, all=TRUE)#
+ag$house_field <- paste(ag$Household.ID, ag$Field.ID, sep= "_")#
+ag <- ag[!duplicated(ag$house_field),]#
+#
+save(ag, file=file.path(save.dir, "ag.Rdata"))
+rm(list=ls())#
+setwd("~/Dropbox/vitalSigns/analysis/vital_signs")#
+library(dplyr)#
+save.dir <- "../../saved/survey"#
+## *****************************************************************#
+## ag. data#
+## *****************************************************************#
+#
+load(file.path(save.dir, "ag.Rdata"))#
+#
+## simplify tenure classes#
+## set "shared-own" equal to "owned" (1)#
+ag$tenure <- ag$ag3a_14#
+ag$tenure[ag$tenure == 5] <- 1#
+## set non-ownership categories equal to 0#
+ag$tenure[ag$tenure > 1] <- 0#
+to.replace <- c("ag3a_07", "ag3a_08_1", "ag3a_18", "ag3a_18b",#
+                "ag3a_23", "ag3a_24", "ag3a_33","ag3a_34",#
+                "ag3a_25", "ag3a_19", "ag3a_35_1", "ag3a_35_2",#
+                "ag2a_vs_8b", "ag2a_vs_8c", "ag2a_04")#
+#
+colnames(ag)[colnames(ag) %in% to.replace] <- c("erosion",#
+                                                "eros_type",#
+                                                "org_fert",#
+                                                "org_fert_type",#
+                                                "inorg_fert",#
+                                                "inorg_fert_type",#
+                                                "pest_herb",#
+                                                "pest_herb_type",#
+                                                "inorg_fert_amount",#
+                                                "org_fert_amount",#
+                                                "pest_herb_amount",#
+                                                "pest_herb_unit",#
+                                                "field_steps",#
+                                                "person_step",#
+                                                "farmer_field_est")
+dim(ag)
+unique(house_field)
+unique(ag$house_field)
+data.dir.ag <- "../../data/Agricultural - Household/ag_data"#
+#
+ag.data <- list.files(data.dir.ag)#
+section.names.ag <- c("field_roster",#
+                       "sec3_field_details",#
+                      "sec4_crops_by_field", "crops_by_hh",#
+                      "permanent_crops_by_field",#
+                      "permanent_crops_by_crop", "byproducts",#
+                      "livestock_by_field", "10a_livestock",#
+                      "10b_livestock", "implements", "12_extension",#
+                      "extension_family", "secA_")#
+#
+all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,#
+                 file.list=ag.data)#
+#
+all.ag <- lapply(all.ag, function(x){#
+    x$Crop.type <- NULL#
+    return(x)#
+})#
+#
+## crop level#
+#
+## indiv.lev <- sapply(all.ag, function(x) "Individual.ID" %in%#
+##                                         colnames(x))#
+## indiv.merge <- Reduce(function(x, y) merge(x, y),#
+##                       all.ag[indiv.lev])#
+field.lev <- sapply(all.ag, function(x) "Field.ID" %in% colnames(x))#
+field.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[field.lev])#
+crop.lev <- sapply(all.ag, function(x) "Crop.ID" %in%#
+                                        colnames(x)) & !field.lev#
+crop.merge <- Reduce(function(x, y) merge(x, y),#
+                     all.ag[crop.lev])#
+#
+house.lev <- !field.lev & !crop.lev#
+house.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[house.lev])#
+## data.prep1 <- merge(indiv.merge, field.merge, all=TRUE)#
+data.prep1 <- merge(field.merge, crop.merge, all=TRUE)#
+ag <- merge(data.prep1, house.merge, all=TRUE)#
+ag$house_field <- paste(ag$Household.ID, ag$Field.ID, sep= "_")#
+## ag <- ag[!duplicated(ag$house_field),]#
+#
+save(ag, file=file.path(save.dir, "ag.Rdata"))
+rm(list=ls())#
+setwd("~/Dropbox/vitalSigns/analysis/vital_signs")#
+save.dir <- "../../saved/survey"#
+#
+getData <- function(data.name, file.list, data.dir){#
+    dats <- paste(data.dir, file.list[grepl(data.name, file.list)],#
+                  sep="/")#
+    dats.csv <- lapply(dats, read.csv)#
+    dats.csv <- do.call(rbind, dats.csv)#
+    return(dats.csv)#
+}#
+#
+shared.names.hh <-  c("Country", "Partner.Organization", "longitude",#
+                      "latitude", "Landscape..", "Household.ID",#
+                      "Data.entry.date", "Individual.ID")
+data.dir.ag <- "../../data/Agricultural - Household/ag_data"#
+#
+ag.data <- list.files(data.dir.ag)#
+section.names.ag <- c("field_roster",#
+                       "sec3_field_details",#
+                      "sec4_crops_by_field", "crops_by_hh",#
+                      "permanent_crops_by_field",#
+                      "permanent_crops_by_crop", "byproducts",#
+                      "livestock_by_field", "10a_livestock",#
+                      "10b_livestock", "implements", "12_extension",#
+                      "extension_family", "secA_")#
+#
+all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,#
+                 file.list=ag.data)#
+#
+all.ag <- lapply(all.ag, function(x){#
+    x$Crop.type <- NULL#
+    return(x)#
+})#
+#
+## crop level#
+#
+## indiv.lev <- sapply(all.ag, function(x) "Individual.ID" %in%#
+##                                         colnames(x))#
+## indiv.merge <- Reduce(function(x, y) merge(x, y),#
+##                       all.ag[indiv.lev])#
+field.lev <- sapply(all.ag, function(x) "Field.ID" %in% colnames(x))#
+field.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[field.lev])#
+crop.lev <- sapply(all.ag, function(x) "Crop.ID" %in%#
+                                        colnames(x)) & !field.lev#
+crop.merge <- Reduce(function(x, y) merge(x, y),#
+                     all.ag[crop.lev])#
+#
+house.lev <- !field.lev & !crop.lev#
+house.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[house.lev])#
+## data.prep1 <- merge(indiv.merge, field.merge, all=TRUE)#
+data.prep1 <- merge(field.merge, crop.merge, all=TRUE)#
+ag <- merge(data.prep1, house.merge, all=TRUE)
+dim(ag)
+colnames(ag)
+ag$Crop.ID
+ag$Crop.name
+ag$house_crop <- paste(ag$Household.ID, ag$Crop.name, sep= "_")#
+ag <- ag[!duplicated(ag$house_crop),]#
+#
+save(ag, file=file.path(save.dir, "ag.Rdata"))
+dim(ag)
+ag$house_crop <- paste(ag$Household.ID, ag$Crop.name, ag$Field.ID, sep= "_")
+ag <- ag[!duplicated(ag$house_crop),]
+save(ag, file=file.path(save.dir, "ag.Rdata"))
+dim(ag)
+ag$Field_name
+ag$Field.name
+data.dir.ag <- "../../data/Agricultural - Household/ag_data"#
+#
+ag.data <- list.files(data.dir.ag)#
+section.names.ag <- c("field_roster",#
+                       "sec3_field_details",#
+                      "sec4_crops_by_field", "crops_by_hh",#
+                      "permanent_crops_by_field",#
+                      "permanent_crops_by_crop", "byproducts",#
+                      "livestock_by_field", "10a_livestock",#
+                      "10b_livestock", "implements", "12_extension",#
+                      "extension_family", "secA_")#
+#
+all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,#
+                 file.list=ag.data)#
+#
+all.ag <- lapply(all.ag, function(x){#
+    x$Crop.type <- NULL#
+    return(x)#
+})#
+#
+## crop level#
+#
+## indiv.lev <- sapply(all.ag, function(x) "Individual.ID" %in%#
+##                                         colnames(x))#
+## indiv.merge <- Reduce(function(x, y) merge(x, y),#
+##                       all.ag[indiv.lev])#
+field.lev <- sapply(all.ag, function(x) "Field.ID" %in% colnames(x))#
+field.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[field.lev])#
+crop.lev <- sapply(all.ag, function(x) "Crop.ID" %in%#
+                                        colnames(x)) & !field.lev#
+crop.merge <- Reduce(function(x, y) merge(x, y),#
+                     all.ag[crop.lev])#
+#
+house.lev <- !field.lev & !crop.lev#
+house.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[house.lev])#
+## data.prep1 <- merge(indiv.merge, field.merge, all=TRUE)#
+data.prep1 <- merge(field.merge, crop.merge, all=TRUE)#
+ag <- merge(data.prep1, house.merge, all=TRUE)
+ag[ag$Household.ID == unique(ag$Household.ID)[10]]
+ag[ag$Household.ID == unique(ag$Household.ID)[15]]
+ag[ag$Household.ID == unique(ag$Household.ID)[4],]
+data.dir.ag <- "../../data/Agricultural - Household/ag_data"#
+#
+ag.data <- list.files(data.dir.ag)#
+section.names.ag <- c("field_roster",#
+                       "sec3_field_details",#
+                      "sec4_crops_by_field", "crops_by_hh",#
+                      "permanent_crops_by_field",#
+                      "permanent_crops_by_crop", "byproducts",#
+                      "livestock_by_field", "10a_livestock",#
+                      "10b_livestock", "implements", "12_extension",#
+                      "extension_family", "secA_")#
+#
+all.ag <- lapply(section.names.ag, getData, data.dir=data.dir.ag,#
+                 file.list=ag.data)#
+#
+all.ag <- lapply(all.ag, function(x){#
+    x$Crop.type <- NULL#
+    return(x)#
+})#
+#
+## crop level#
+#
+## indiv.lev <- sapply(all.ag, function(x) "Individual.ID" %in%#
+##                                         colnames(x))#
+## indiv.merge <- Reduce(function(x, y) merge(x, y),#
+##                       all.ag[indiv.lev])#
+field.lev <- sapply(all.ag, function(x) "Field.ID" %in% colnames(x))#
+field.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[field.lev])#
+crop.lev <- sapply(all.ag, function(x) "Crop.ID" %in%#
+                                        colnames(x)) & !field.lev#
+crop.merge <- Reduce(function(x, y) merge(x, y),#
+                     all.ag[crop.lev])#
+#
+house.lev <- !field.lev & !crop.lev#
+house.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[house.lev])#
+## data.prep1 <- merge(indiv.merge, field.merge, all=TRUE)#
+data.prep1 <- merge(field.merge, crop.merge)#
+ag <- merge(data.prep1, house.merge)#
+ag$house_crop <- paste(ag$Household.ID, ag$Crop.name, ag$Field.ID, sep= "_")#
+ag <- ag[!duplicated(ag$house_crop),]#
+#
+save(ag, file=file.path(save.dir, "ag.Rdata"))
+dim(ag)
+## data.prep1 <- merge(indiv.merge, field.merge, all=TRUE)#
+data.prep1 <- merge(field.merge, crop.merge, all=TRUE)#
+ag <- merge(data.prep1, house.merge)#
+ag$house_crop <- paste(ag$Household.ID, ag$Crop.name, ag$Field.ID, sep= "_")#
+ag <- ag[!duplicated(ag$house_crop),]#
+#
+save(ag, file=file.path(save.dir, "ag.Rdata"))
+dim(ag)
+house.lev <- !field.lev & !crop.lev#
+house.merge <- Reduce(function(x, y) merge(x, y),#
+                      all.ag[house.lev])#
+## data.prep1 <- merge(indiv.merge, field.merge, all=TRUE)#
+data.prep1 <- merge(field.merge, crop.merge, all=TRUE)#
+ag <- merge(data.prep1, house.merge, all=TRUE)#
+ag$house_crop <- paste(ag$Household.ID, ag$Crop.name, ag$Field.ID, sep= "_")#
+ag <- ag[!duplicated(ag$house_crop),]#
+#
+save(ag, file=file.path(save.dir, "ag.Rdata"))
+?merge
