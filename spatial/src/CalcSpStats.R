@@ -16,23 +16,23 @@ pointrastcheck <- function(pt, rast){
 calcSpStats <- function(i,
                         d, ## buffer RADIUS
                         plt, ## plot csv
-                        plt.name, ## name of column with plot names (not a string)
                         rast, ## raster to calculate stats from
                         ## projections from
                         FUN=ClassStat, ## function for calculating stats on buffers
                         plot="PLOT", ## attributes table column name
                         ## with plot data
-                        crs =
-                            "+proj=utm +zone=37 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs",
+                        coordinate.cols = c("centerpoint_longitude", "centerpoint_latitude"),
+                        ## crs =
+                        ##     "+proj=utm +zone=37 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs",
                         proj =
                             "+proj=utm +zone=37 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs"){
 
     ##   ClassStat is a function from the SDMTools package that calculates
     ## the frag stat metrics
-
+browser()
     ## creates buffers of a given size, calculates frag stat metrics
-    rast <- projectRaster(rast, crs = crs, method = 'ngb')
-    these.coord <- as.matrix(plt[i,12:13])
+    ## rast <- projectRaster(rast, crs = crs, method = 'ngb')
+    these.coord <- as.matrix(plt[i, coordinate.cols])
     these.coord <- project(these.coord, proj = proj)
     spStats <- vector("list", length=length(d))
     for(j in 1:length(d)){
