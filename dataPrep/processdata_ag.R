@@ -15,6 +15,7 @@ ind <- read.csv("~/Dropbox/vitalSigns/data/Agricultural - Household/hh_data/hh_s
 hh <-
     read.csv("~/Dropbox/vitalSigns/data/joinedData/hh.csv")
 
+ag$Landscape.. <- paste0(ag$Country, ag$Landscape..)
 
 to.replace <-  c("ag3a_14", ## tenure
                  "ag3a_06", ## soil quality
@@ -25,7 +26,7 @@ to.replace <-  c("ag3a_14", ## tenure
                  "ag3a_26", ## fertilizer certificate
                  "ag3a_38_3", "ag3a_38_6", "ag3a_38_64", "ag3a_38_9", ##wages
                  "ag4a_04", ## intercropping
-                 "ag3a_09", "ag3a_10") ##irrigation
+                 "ag3a_09", "ag3a_10") ##irrigation/water
 
 to.replace <- c(paste("long_rainy_", to.replace, sep=""),
                 paste("short_rainy_", to.replace, sep=""),
@@ -76,6 +77,16 @@ ag$inorg_fert <- ag$short_rainy_inorg_fert == 1 &
     ag$long_rainy_inorg_fert == 1 &
     !is.na(ag$long_rainy_inorg_fert)
 
+ag$long_rainy_inorg_fert_type <-
+    as.character(ag$long_rainy_inorg_fert_type)
+ag$short_rainy_inorg_fert_type <-
+    as.character(ag$short_rainy_inorg_fert_type)
+
+ag$long_rainy_inorg_fert_type[ag$long_rainy_inorg_fert == 0] <- "None"
+ag$short_rainy_inorg_fert_type[ag$short_rainy_inorg_fert == 0] <- "None"
+
+
+
 ## *****************************************************************
 ## if the farm uses organic fertilizer
 ag$org_fert <- NA
@@ -84,6 +95,15 @@ ag$org_fert <- ag$short_rainy_org_fert == 1 &
     ag$long_rainy_org_fert == 1 &
     !is.na(ag$long_rainy_org_fert)
 
+
+ag$long_rainy_org_fert_type <-
+    as.character(ag$long_rainy_org_fert_type)
+ag$short_rainy_org_fert_type <-
+    as.character(ag$short_rainy_org_fert_type)
+
+ag$long_rainy_org_fert_type[ag$long_rainy_org_fert == 0] <- 0
+ag$short_rainy_org_fert_type[ag$short_rainy_org_fert == 0] <- 0
+
 ## *****************************************************************
 ## if the farm uses pesticides or herbicides
 ag$pest_herb <- NA
@@ -91,6 +111,26 @@ ag$pest_herb <- ag$short_rainy_pest_herb == 1 &
     !is.na(ag$short_rainy_pest_herb) |
     ag$long_rainy_pest_herb == 1 &
     !is.na(ag$long_rainy_pest_herb)
+
+
+ag$long_rainy_pest_herb_type <-
+    as.character(ag$long_rainy_pest_herb_type)
+ag$short_rainy_pest_herb_type <-
+    as.character(ag$short_rainy_pest_herb_type)
+
+ag$long_rainy_pest_herb_type[ag$long_pest_herb == 0] <- 0
+ag$short_rainy_pest_herb_type[ag$short_pest_herb == 0] <- 0
+
+## *****************************************************************
+## irrigation
+
+ag$long_rainy_irrigation_type <-
+    as.character(ag$long_rainy_irrigation_type)
+ag$short_rainy_irrigation_type <-
+    as.character(ag$short_rainy_irrigation_type)
+
+ag$long_rainy_irrigation_type[ag$long_rainy_irrigation == 0] <- 0
+ag$short_rainy_irrigation_type[ag$short_rainy_irrigation == 0] <- 0
 
 ## *****************************************************************
 ## certification for external inputs
@@ -158,7 +198,7 @@ ag$tenure[is.na(ag$long_rainy_tenure)] <- NA
 ## extension
 
 ag$extension <- as.character(extension$source_id[match(ag$Household.ID,
-                                          extension$Household.ID)])
+                                                       extension$Household.ID)])
 ag$extension[is.na(ag$extension)] <- 0
 
 ag$any_extension <- ag$extension
@@ -183,8 +223,8 @@ ag$short_rainy_crop_rich <- tapply(ag$short_rainy_Crop.ID,
                                    function(x) length(unique(x)))
 
 ag$total_crop_rich <- apply(ag[, c("long_rainy_crop_rich",
-                                  "short_rainy_crop_rich")], 1, sum,
-                           na.rm=TRUE)
+                                   "short_rainy_crop_rich")], 1, sum,
+                            na.rm=TRUE)
 
 ag$total_crop_area <- tapply(ag$GPS_area, ag$Household.ID, sum)
 
@@ -193,8 +233,11 @@ ag$crop_div <- tapply(ag$GPS_area, ag$Household.ID,
 
 ## *****************************************************************
 ## sum diversification practices
-div.cols <- c("div_treebelt", "org_fert", "livestock_int",
-              "crop_rotation", "intercrop")
+
+div.cols <- c(## "div_treebelt",
+              "org_fert", "livestock_int",
+              ## "crop_rotation",
+              "intercrop")
 
 ag$total_div <- apply(ag[, div.cols], 1, sum, na.rm=TRUE)
 ag$total_div[apply(ag[, div.cols], 1,
@@ -205,20 +248,9 @@ ag$any_div <- ag$total_div > 0
 ## *****************************************************************
 ## farmers that don't use diversification practices or external inputs
 
-ag$no_inputs <- ag$any_div | ag$ext_input
+ag$no_inputs <- !ag$org_fert & !ag$ext_input
 ag$no_inputs[apply(ag[, c("any_div", "ext_input")], 1,
                    function(x) all(is.na(x)))] <- NA
-
-
-
-## *****************************************************************
-## get classes correct
-made.cols.factor <- c("any_div", "ext_input", "no_inputs",
-                      "crop_rotation", "intercrop",
-                      "fert_cert", "pest_herb", "inorg_fert", "org_fert")
-
-ag[, made.cols.factor] <- ag[, made.cols.factor]*1
-
 
 
 ## *****************************************************************
@@ -226,7 +258,7 @@ ag[, made.cols.factor] <- ag[, made.cols.factor]*1
 ## *****************************************************************
 
 ## *****************************************************************
-## number of indivudals over 5 in a household and under 75?
+## number of individuals over 5 in a household and under 75?
 
 ## sex hh_b02
 ## dob hh_b03
@@ -239,9 +271,20 @@ ind$working <- ind$yrs_old > 4 & ind$yrs_old < 75
 
 hh.labor <- tapply(ind$working, ind$Household.ID, sum, na.rm=TRUE)
 
+hh.labor <- tapply(ind$working, ind$Household.ID, sum, na.rm=TRUE)
+
 ## potential farm help?
 ag$hh_pot_labor <- hh.labor[match(ag$Household.ID, names(hh.labor))]
 
+## total individuals
+total.ind <- tapply(ind$Individual.ID, ind$Household.ID, length)
+ag$hh_ind <- total.ind[match(ag$Household.ID, names(total.ind))]
+
+## prop working?
+ag$prop_pot_labor <- ag$hh_pot_labor/ag$hh_ind
+
+## *****************************************************************
+## household data
 ## *****************************************************************
 ## food insecurity
 
@@ -250,7 +293,87 @@ food.insecurity <- c("hh_i01", "hh_i02_1", "hh_i02_2", "hh_i02_3",
                      "hh_i02_4", "hh_i02_5", "hh_i02_6", "hh_i02_7",
                      "hh_i02_8")
 
-ag <- cbind(ag, hh[, food.insecurity][match(ag$Household.ID, hh$hh_refno),])
+water.insecurity <- c("hh_j14", "hh_j15", ## water source
+                      "j20b_02", ## water insecurity
+                      "hh_j13", "hh_j12", "hh_j11") ## fuel/electricity
+hh$hh_c03[hh$j20b_02 == 2] <- 0
+
+ag <- cbind(ag,
+            hh[, c(water.insecurity,
+                   food.insecurity)][match(ag$Household.ID,
+                                           hh$hh_refno),])
+
+colnames(ag)[colnames(ag) %in% water.insecurity] <-
+    c("water_source_rainy",
+      "water_source_dry",
+      "water_insecurity",
+      "electricity_source",
+      "lighting_fuel",
+      "cooking_fuel")
+
+ag$food_insecurity <- apply(ag[, food.insecurity], 1, sum)
+
+## educated inviduals
+sec3 <- read.csv("../../data/Agricultural - Household/hh_data/hh_secC.csv")
+sec3$hh_c03[sec3$hh_c03 == 2] <- 0
+
+hh.edu <- tapply(sec3$hh_c03, sec3$Household.ID,
+                 sum, na.rm=TRUE)
+
+ag$educated <- hh.edu[match(ag$Household.ID, names(hh.edu))]
+
+ag$prop_education <- ag$educated/ag$hh_ind
+
+secE <- read.csv("../../data/Agricultural - Household/hh_data/hh_secE.csv")
+hh.profit <- tapply(secE$hh_e65_1, sec3$Household.ID,
+                    sum, na.rm=TRUE)
+
+ag$profit <- hh.profit[match(ag$Household.ID, names(hh.profit))]
+
+## *****************************************************************
+## spatial data
+## *****************************************************************
+
+load(file.path(save.dir, '../spatial/tanz_stats.rdata'))
+load(file.path(save.dir, '../spatial/gha_stats.rdata'))
+load(file.path(save.dir, '../spatial/ug_stats.rdata'))
+
+getSpatialDiv <- function(spStats,
+                          d,
+                          keep.stat= c("simpson.div"),
+                          by.site,
+                          site.col= "Landscape.."){
+    extract.stats <- function(ds.element, spStats){
+        a.stats <- lapply(spStats, function(x) x[ds.element])
+        mat.stats <- unlist(a.stats, recursive=FALSE)
+        df.stats <- do.call(rbind, mat.stats)
+        df.stats <- as.data.frame(df.stats)
+        return(df.stats)
+    }
+    out.lms <- vector("list", length(d))
+    for(i in 1:length(d)){
+        out.stat <- extract.stats(ds.element=i,
+                                  spStats=spStats)
+        out.stat$Site <- gsub(paste0(".", d), "", rownames(out.stat))
+    }
+    return(out.stat)
+}
+
+all.sp.stats <- lapply(list(sum.tanz, sum.gha, sum.ug), getSpatialDiv,
+                       d="1000",  by.site=ag)
+
+all.sp.stats[[1]]$Country <- "TZA"
+all.sp.stats[[2]]$Country <- "GHA"
+all.sp.stats[[3]]$Country <- "UGA"
+
+all.sp.stats <- do.call(rbind, all.sp.stats)
+ag <- cbind(ag,
+            all.sp.stats[ , -c(40:41)][match(paste(ag$Country,
+                                                   ag$Landscape..),
+                                             paste(all.sp.stats$Country,
+                                                   all.sp.stats$Site)),])
+
+
 
 ## code "sand and bricks", "bricks and sand" as mud brick (4)
 ## code "Mud,poles,bricks and cement" as poles and mud (2)
@@ -258,5 +381,87 @@ ag <- cbind(ag, hh[, food.insecurity][match(ag$Household.ID, hh$hh_refno),])
 
 ## code "bush" as "no toilet" (1)
 
+
+## *****************************************************************
+## get classes correct
+
+made.cols.factor <- c("any_div", "ext_input", "no_inputs",
+                      "crop_rotation", "intercrop",  "livestock_int",
+                      "fert_cert", "pest_herb", "inorg_fert",
+                      "long_rainy_soil_quality",
+                      "org_fert",
+                      "extension",
+                      "tenure",
+                      "Country",  "Landscape..",
+                      "org_fert",
+                      "inorg_fert",
+                      "pest_herb",
+                      "long_rainy_org_fert_type",
+                      "long_rainy_inorg_fert_type",
+                      "short_rainy_org_fert_type",
+                      "short_rainy_inorg_fert_type",
+                      "long_rainy_pest_herb_type",
+                      "short_rainy_pest_herb_type",
+                      "water_source_rainy",
+                      "water_source_dry",
+                      "water_insecurity",
+                      "electricity_source",
+                      "lighting_fuel",
+                      "cooking_fuel",
+                       "long_rainy_irrigation",
+                      "long_rainy_irrigation_type",
+                      "short_rainy_irrigation", "short_rainy_irrigation_type")
+
+for(i in made.cols.factor){
+    ag[, i] <- as.factor(ag[,i])
+}
+
+
+levels(ag$water_source_rainy) <- levels(ag$water_source_dry) <-
+    c('Piped Water Inside Dwelling',
+         'Private Outside Standpipe/Tap',
+         'Public Standpipe/Tap',
+         'Neighbouring Household',
+         'Water Vendor', 'Subsidized Water Vending Station',
+         'Water Truck/Tanker Service',
+         'Protected Well With Pump',
+         'Unprotected Well With Pump',
+         'Protected Well Without Pump',
+         'Unprotected Well Without Pump',
+         'River, Lake, Spring, Pond',
+         'Rainwater', 'Other')
+
+levels(ag$long_rainy_pest_herb_type) <-
+    levels(ag$short_rainy_pest_herb_type) <-
+    c("None", 'Pesticide', 'Herbicide','Fungicide')
+
+levels(ag$long_rainy_org_fert) <-  levels(ag$short_rainy_org_fert) <-
+    c("None", 'Crop Residue', 'Animal Manure', 'Natural Fallow',
+    'Leguminous Tree Fallow', 'Leguminous Cover Crop',
+    'Biomass Transfer', 'Compost')
+
+levels(ag$extension) <- c("none", 'Ministry Of Agriculture', 'Ngo',
+                  'Cooperative', 'Large Scale Farmer/Outgrowers',
+                  'Research Organization/University',
+                  "Community Based Farmer'S Organisations (Cbos)/Farmer Based Organisations (Fbos)",
+                  "other")
+
+
+for(i in made.cols.factor){
+    ag[, i] <- as.factor(ag[,i])
+}
+
+
+made.cols.numeric <- c( "crop_div", "simpson.div",
+                       "prop_education", "profit",   "total_paid_wages",
+                       "total_div", "prop_pot_labor",   "total_crop_area")
+
+for(i in made.cols.numeric){
+    ag[, i] <- as.numeric(ag[,i])
+}
+
+## there is one farm that is way too big
+ag$total_crop_area[ag$total_crop_area ==
+                   max(ag$total_crop_area, na.rm=TRUE)] <- NA
 
 save(ag, file=file.path(save.dir, "ag.Rdata"))

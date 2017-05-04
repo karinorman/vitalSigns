@@ -14,12 +14,11 @@ pointrastcheck <- function(pt, rast){
 }
 
 calcSpStats <- function(i,
-                        d, ## buffer RADIUS
+                        d, ## buffer RADIS
                         plt, ## plot csv
                         rast, ## raster to calculate stats from
                         ## projections from
                         FUN=ClassStat, ## function for calculating stats on buffers
-                        plot="PLOT", ## attributes table column name
                         ## with plot data
                         coordinate.cols = c("centerpoint_longitude", "centerpoint_latitude"),
                         ## crs =
@@ -29,7 +28,6 @@ calcSpStats <- function(i,
 
     ##   ClassStat is a function from the SDMTools package that calculates
     ## the frag stat metrics
-browser()
     ## creates buffers of a given size, calculates frag stat metrics
     ## rast <- projectRaster(rast, crs = crs, method = 'ngb')
     these.coord <- as.matrix(plt[i, coordinate.cols])
@@ -49,3 +47,15 @@ browser()
     return(spStats)
 }
 
+calcLandStats <- function(class.stats){
+    simpson <- function(stats){
+        1- sum(stats[,"prop.landscape"]^2)
+    }
+    land.stats <- lapply(class.stats, function(x){
+        means <- apply(x, 2, mean, na.rm=TRUE)
+        simpson.div <- simpson(x)
+        names(simpson.div) <- "simpson.div"
+        return(c(means, simpson.div))
+    })
+    return(land.stats)
+}

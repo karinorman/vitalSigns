@@ -13,22 +13,34 @@ spstats.mult.tanz <- lapply(1:nplot, calcSpStats, d = buff,
                             plt = tanz.farm,
                             rast =  tanz)
 names(spstats.mult.tanz) <- tanz.farm$landscape_no
-save(spstats.mult.tanz, file = file.path(save.path, 'tanz_stats.rdata'))
+sum.tanz <- lapply(spstats.mult.tanz, calcLandStats)
+
+save(spstats.mult.tanz, sum.tanz,
+     file = file.path(save.path, 'tanz_stats.rdata'))
 
 ## Ghana Analysis
-nplot <- nrow(gha.farm)
+nplot.gha <- nrow(gha.farm)
 gha <- projectRaster(gha, crs = crs, method = 'ngb')
-spstats.mult.gha <- lapply(1:nplot, calcSpStats, d = buff,
-                           plt = gha.farm,
-                           rast =  gha)
+spstats.mult.gha <- lapply(1:nplot.gha, calcSpStats, d = buff,
+                            plt = gha.farm,
+                            rast =  gha)
+
 names(spstats.mult.gha) <- gha.farm$landscape_no
-save(spstats.mult.gha, file = file.path(save.path, 'gha_stats.rdata'))
+
+sum.gha <- lapply(spstats.mult.gha, calcLandStats)
+save(spstats.mult.gha, sum.gha,
+     file = file.path(save.path, 'gha_stats.rdata'))
 
 ## Uganda Analysis
-nplot <- nrow(ug.farm)
+nplot.ug <- nrow(ug.farm)
 ug <- projectRaster(ug, crs = crs, method = 'ngb')
-spstats.mult.ug <- lapply(1:nplot, calcSpStats, d = buff,
-                          plt = ug.farm,,
+spstats.mult.ug <- lapply(1:nplot.ug, calcSpStats, d = buff,
+                          plt = ug.farm,
                           rast =  ug)
 names(spstats.mult.ug) <- ug.farm$landscape_no
-save(spstats.mult.ug, file = file.path(save.path, 'ug_stats.rdata'))
+
+sum.ug <- lapply(spstats.mult.ug, calcLandStats)
+save(spstats.mult.ug, sum.ug,
+     file = file.path(save.path, 'ug_stats.rdata'))
+
+
