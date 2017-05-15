@@ -26,7 +26,7 @@ to.replace <-  c("ag3a_14", ## tenure
                  "ag3a_26", ## fertilizer certificate
                  "ag3a_38_3", "ag3a_38_6", "ag3a_38_64", "ag3a_38_9", ##wages
                  "ag4a_04", ## intercropping
-                 "ag3a_09", "ag3a_10") ##irrigation/water
+                 "ag3a_09", "ag3a_10", "ag3a_11") ##irrigation/water
 
 to.replace <- c(paste("long_rainy_", to.replace, sep=""),
                 paste("short_rainy_", to.replace, sep=""),
@@ -41,7 +41,7 @@ practices <- c("tenure",
                "fert_cert", "wages_landprep", "wages_weeding",
                "wages_non-harvest", "wages_harvesting",
                "intercrop",
-               "irrigation", "irrigation_type")
+               "irrigation", "irrigation_type", "field_water_source")
 
 colnames(ag)[match(to.replace, colnames(ag))] <-
     c(paste("long_rainy_",
@@ -70,6 +70,23 @@ ag$intercrop <- ag$short_rainy_intercrop == 1 &
     !is.na(ag$long_rainy_intercrop)
 
 ## *****************************************************************
+## if the farm uses erosion control at least one season
+ag$erosion <- NA
+ag$erosion <- ag$short_rainy_erosion == 1 &
+    !is.na(ag$short_rainy_erosion) |
+    ag$long_rainy_erosion == 1 &
+    !is.na(ag$long_rainy_erosion)
+
+
+ag$long_rainy_eros_type <-
+    as.character(ag$long_rainy_eros_type)
+ag$short_rainy_eros_type <-
+    as.character(ag$short_rainy_eros_type)
+
+ag$long_rainy_eros_type[ag$long_rainy_erosion == 2] <-0
+ag$short_rainy_eros_type[ag$short_rainy_erosion == 2] <-0
+
+## *****************************************************************
 ## if the farm uses inorganic fertilizer
 ag$inorg_fert <- NA
 ag$inorg_fert <- ag$short_rainy_inorg_fert == 1 &
@@ -82,8 +99,8 @@ ag$long_rainy_inorg_fert_type <-
 ag$short_rainy_inorg_fert_type <-
     as.character(ag$short_rainy_inorg_fert_type)
 
-ag$long_rainy_inorg_fert_type[ag$long_rainy_inorg_fert == 0] <- "None"
-ag$short_rainy_inorg_fert_type[ag$short_rainy_inorg_fert == 0] <- "None"
+ag$long_rainy_inorg_fert_type[ag$long_rainy_inorg_fert == 2] <- 0
+ag$short_rainy_inorg_fert_type[ag$short_rainy_inorg_fert == 2] <- 0
 
 
 
@@ -101,8 +118,8 @@ ag$long_rainy_org_fert_type <-
 ag$short_rainy_org_fert_type <-
     as.character(ag$short_rainy_org_fert_type)
 
-ag$long_rainy_org_fert_type[ag$long_rainy_org_fert == 0] <- 0
-ag$short_rainy_org_fert_type[ag$short_rainy_org_fert == 0] <- 0
+ag$long_rainy_org_fert_type[ag$long_rainy_org_fert == 2] <- 0
+ag$short_rainy_org_fert_type[ag$short_rainy_org_fert == 2] <- 0
 
 ## *****************************************************************
 ## if the farm uses pesticides or herbicides
@@ -118,8 +135,8 @@ ag$long_rainy_pest_herb_type <-
 ag$short_rainy_pest_herb_type <-
     as.character(ag$short_rainy_pest_herb_type)
 
-ag$long_rainy_pest_herb_type[ag$long_pest_herb == 0] <- 0
-ag$short_rainy_pest_herb_type[ag$short_pest_herb == 0] <- 0
+ag$long_rainy_pest_herb_type[ag$long_rainy_pest_herb == 2] <- 0
+ag$short_rainy_pest_herb_type[ag$short_rainy_pest_herb == 2] <- 0
 
 ## *****************************************************************
 ## irrigation
@@ -129,8 +146,8 @@ ag$long_rainy_irrigation_type <-
 ag$short_rainy_irrigation_type <-
     as.character(ag$short_rainy_irrigation_type)
 
-ag$long_rainy_irrigation_type[ag$long_rainy_irrigation == 0] <- 0
-ag$short_rainy_irrigation_type[ag$short_rainy_irrigation == 0] <- 0
+ag$long_rainy_irrigation_type[ag$long_rainy_irrigation == 2] <- 0
+ag$short_rainy_irrigation_type[ag$short_rainy_irrigation == 2] <- 0
 
 ## *****************************************************************
 ## certification for external inputs
@@ -149,7 +166,7 @@ ag$ext_input <- ag$pest_herb == TRUE  |
 ## *****************************************************************
 ## livestock integration
 ag$livestock_int[ag$livestock_int == 1] <- TRUE
-ag$livestock_int[ag$livestock_int == 1] <- FALSE
+ag$livestock_int[ag$livestock_int == 2] <- FALSE
 
 ## *****************************************************************
 ## wages
@@ -183,6 +200,8 @@ ag$fert_cert[is.na(ag$short_rainy_fert_cert) &
              is.na(ag$long_rainy_fert_cert)] <- NA
 ag$intercrop[is.na(ag$short_rainy_intercrop) &
              is.na(ag$long_rainy_intercrop)] <- NA
+ag$erosion[is.na(ag$short_rainy_erosion) &
+             is.na(ag$long_rainy_erosion)] <- NA
 
 
 ## *****************************************************************
@@ -297,6 +316,8 @@ water.insecurity <- c("hh_j14", "hh_j15", ## water source
                       "j20b_02", ## water insecurity
                       "hh_j13", "hh_j12", "hh_j11") ## fuel/electricity
 hh$hh_c03[hh$j20b_02 == 2] <- 0
+hh$hh_i01[hh$j20b_02 == 2] <- 0
+
 
 ag <- cbind(ag,
             hh[, c(water.insecurity,
@@ -391,6 +412,7 @@ made.cols.factor <- c("any_div", "ext_input", "no_inputs",
                       "long_rainy_soil_quality",
                       "org_fert",
                       "extension",
+                      "erosion",
                       "tenure",
                       "Country",  "Landscape..",
                       "org_fert",
@@ -410,7 +432,11 @@ made.cols.factor <- c("any_div", "ext_input", "no_inputs",
                       "cooking_fuel",
                        "long_rainy_irrigation",
                       "long_rainy_irrigation_type",
-                      "short_rainy_irrigation", "short_rainy_irrigation_type")
+                      "short_rainy_irrigation",
+                      "short_rainy_irrigation_type",
+                      "long_rainy_eros_type",
+                      "short_rainy_eros_type",
+                      "short_rainy_field_water_source", "long_rainy_field_water_source")
 
 for(i in made.cols.factor){
     ag[, i] <- as.factor(ag[,i])
@@ -435,21 +461,22 @@ levels(ag$long_rainy_pest_herb_type) <-
     levels(ag$short_rainy_pest_herb_type) <-
     c("None", 'Pesticide', 'Herbicide','Fungicide')
 
-levels(ag$long_rainy_org_fert) <-  levels(ag$short_rainy_org_fert) <-
+levels(ag$long_rainy_org_fert_type) <-  levels(ag$short_rainy_org_fert_type) <-
     c("None", 'Crop Residue', 'Animal Manure', 'Natural Fallow',
     'Leguminous Tree Fallow', 'Leguminous Cover Crop',
     'Biomass Transfer', 'Compost')
 
-levels(ag$extension) <- c("none", 'Ministry Of Agriculture', 'Ngo',
+levels(ag$extension) <- c("None", 'Ministry Of Agriculture', 'Ngo',
                   'Cooperative', 'Large Scale Farmer/Outgrowers',
                   'Research Organization/University',
                   "Community Based Farmer'S Organisations (Cbos)/Farmer Based Organisations (Fbos)",
                   "other")
 
 
-for(i in made.cols.factor){
-    ag[, i] <- as.factor(ag[,i])
-}
+levels(ag$long_rainy_eros_type) <-
+    levels(ag$short_rainy_eros_type) <-
+    c("None", 'Terraces','Erosion Control Bunds', 'Gabions / Sandbags',
+      'Vetiver Grass', 'Tree Belts', 'Water Harvest Bunds', 'Drainage Ditches', 'Dam')
 
 
 made.cols.numeric <- c( "crop_div", "simpson.div",
@@ -463,5 +490,11 @@ for(i in made.cols.numeric){
 ## there is one farm that is way too big
 ag$total_crop_area[ag$total_crop_area ==
                    max(ag$total_crop_area, na.rm=TRUE)] <- NA
+
+ag$crop_div[ag$crop_div ==
+            min(ag$crop_div, na.rm=TRUE)] <- NA
+
+ag$prop_pot_labor[ag$prop_pot_labor ==
+                   min(ag$prop_pot_labor, na.rm=TRUE)] <- NA
 
 save(ag, file=file.path(save.dir, "ag.Rdata"))

@@ -1,3 +1,12 @@
+## write to a pdf
+pdf.f <- function(f, file, ...) {
+    cat(sprintf('Writing %s\n', file))
+    pdf(file, ...)
+    on.exit(dev.off())
+    f()
+}
+
+
 runMod <- function(forms,
                    fam,
                    ys,
@@ -48,7 +57,7 @@ checkRandomForest <- function(dev.data, val.data, rf, plot.main, y){
     varImpPlot(rf,
                sort = TRUE,
                main=plot.main,
-               n.var=10)
+               n.var=8)
     ## importance.vars <- getOutput(rf)
 
     dev.data$pr1 <- predict(rf,
@@ -71,4 +80,16 @@ checkRandomForest <- function(dev.data, val.data, rf, plot.main, y){
 
         return(list(c.mat.dev, c.mat.val))
     }
+}
+
+
+sepDevValData <- function(data, training.prop=0.8){
+    sample.ind <- sample(2,
+                         nrow(data),
+                         replace = TRUE,
+                         prob = c(training.prop, (1-training.prop)))
+
+    dev <- data[sample.ind==1,]
+    val <- data[sample.ind==2,]
+    return(list(dev=dev, val=val))
 }
