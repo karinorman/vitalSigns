@@ -51,9 +51,10 @@ getOutput <- function(x){
 
 
 checkRandomForest <- function(dev.data, val.data, rf, plot.main, y){
-    quartz()
+    # quartz()
+    X11()
     plot(rf)
-    quartz(height=11, width=8.5)
+    X11(height=11, width=8.5)
     varImpPlot(rf,
                sort = TRUE,
                main=plot.main,
