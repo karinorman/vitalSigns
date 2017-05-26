@@ -83,8 +83,8 @@ ag$long_rainy_eros_type <-
 ag$short_rainy_eros_type <-
     as.character(ag$short_rainy_eros_type)
 
-ag$long_rainy_eros_type[ag$long_rainy_erosion == 2] <-0
-ag$short_rainy_eros_type[ag$short_rainy_erosion == 2] <-0
+ag$long_rainy_eros_type[ag$long_rainy_erosion == 2] <- 0
+ag$short_rainy_eros_type[ag$short_rainy_erosion == 2] <- 0
 
 ## *****************************************************************
 ## if the farm uses inorganic fertilizer
@@ -140,14 +140,16 @@ ag$short_rainy_pest_herb_type[ag$short_rainy_pest_herb == 2] <- 0
 
 ## *****************************************************************
 ## irrigation
+ag$long_rainy_irrigation[ag$long_rainy_irrigation == 2] <- 0
+ag$short_rainy_irrigation[ag$short_rainy_irrigation == 2] <- 0
 
 ag$long_rainy_irrigation_type <-
     as.character(ag$long_rainy_irrigation_type)
 ag$short_rainy_irrigation_type <-
     as.character(ag$short_rainy_irrigation_type)
 
-ag$long_rainy_irrigation_type[ag$long_rainy_irrigation == 2] <- 0
-ag$short_rainy_irrigation_type[ag$short_rainy_irrigation == 2] <- 0
+ag$long_rainy_irrigation_type[ag$long_rainy_irrigation == 0] <- 0
+ag$short_rainy_irrigation_type[ag$short_rainy_irrigation == 0] <- 0
 
 ## *****************************************************************
 ## certification for external inputs
@@ -222,6 +224,7 @@ ag$extension[is.na(ag$extension)] <- 0
 
 ag$any_extension <- ag$extension
 ag$any_extension[ag$any_extension != 0] <- 1
+ag$any_extension <- as.numeric(ag$any_extension)
 
 ag$extension_source <- extension$source_name[match(ag$Household.ID,
                                                    extension$Household.ID)]
@@ -290,14 +293,14 @@ ind$working <- ind$yrs_old > 4 & ind$yrs_old < 75
 
 hh.labor <- tapply(ind$working, ind$Household.ID, sum, na.rm=TRUE)
 
-hh.labor <- tapply(ind$working, ind$Household.ID, sum, na.rm=TRUE)
-
 ## potential farm help?
 ag$hh_pot_labor <- hh.labor[match(ag$Household.ID, names(hh.labor))]
 
 ## total individuals
 total.ind <- tapply(ind$Individual.ID, ind$Household.ID, length)
 ag$hh_ind <- total.ind[match(ag$Household.ID, names(total.ind))]
+
+hh$hh_ind <- total.ind[match(hh$hh_refno, names(total.ind))]
 
 ## prop working?
 ag$prop_pot_labor <- ag$hh_pot_labor/ag$hh_ind
@@ -315,24 +318,25 @@ food.insecurity <- c("hh_i01", "hh_i02_1", "hh_i02_2", "hh_i02_3",
 water.insecurity <- c("hh_j14", "hh_j15", ## water source
                       "j20b_02", ## water insecurity
                       "hh_j13", "hh_j12", "hh_j11") ## fuel/electricity
-hh$hh_c03[hh$j20b_02 == 2] <- 0
-hh$hh_i01[hh$j20b_02 == 2] <- 0
+hh$j20b_02[hh$j20b_02 == 2] <- 0
+hh$hh_c03[hh$j20b_02 == 0] <- 0
+hh$hh_i01[hh$j20b_02 == 0] <- 0
 
+hh$food_insecurity <- apply(hh[, food.insecurity], 1, sum)
 
-ag <- cbind(ag,
-            hh[, c(water.insecurity,
-                   food.insecurity)][match(ag$Household.ID,
-                                           hh$hh_refno),])
-
-colnames(ag)[colnames(ag) %in% water.insecurity] <-
-    c("water_source_rainy",
+insec.names <- c("water_source_rainy",
       "water_source_dry",
       "water_insecurity",
       "electricity_source",
       "lighting_fuel",
       "cooking_fuel")
 
-ag$food_insecurity <- apply(ag[, food.insecurity], 1, sum)
+colnames(hh)[match(water.insecurity, colnames(hh))] <- insec.names
+
+ag <- cbind(ag,
+            hh[, c(insec.names, "food_insecurity")][match(ag$Household.ID,
+                                           hh$hh_refno),])
+
 
 ## educated inviduals
 sec3 <- read.csv("../../data/Agricultural - Household/hh_data/hh_secC.csv")
@@ -389,9 +393,8 @@ all.sp.stats[[3]]$Country <- "UGA"
 
 all.sp.stats <- do.call(rbind, all.sp.stats)
 ag <- cbind(ag,
-            all.sp.stats[ , -c(40:41)][match(paste(ag$Country,
-                                                   ag$Landscape..),
-                                             paste(all.sp.stats$Country,
+            all.sp.stats[ , -c(40:41)][match(ag$Landscape..,
+                                             paste0(all.sp.stats$Country,
                                                    all.sp.stats$Site)),])
 
 
@@ -403,8 +406,68 @@ ag <- cbind(ag,
 ## code "bush" as "no toilet" (1)
 
 
+
+## *****************************************************************
+## random bugs???
+## there is one farm that is way too big
+ag$total_crop_area[ag$total_crop_area ==
+                   max(ag$total_crop_area, na.rm=TRUE)] <- NA
+
+ag$crop_div[ag$crop_div ==
+            min(ag$crop_div, na.rm=TRUE)] <- NA
+
+ag$prop_pot_labor[ag$prop_pot_labor ==
+                  min(ag$prop_pot_labor, na.rm=TRUE)] <- NA
+
+
 ## *****************************************************************
 ## get classes correct
+
+
+tf.cols <- c("any_div", "ext_input", "no_inputs",
+                "crop_rotation", "intercrop",  "livestock_int",
+                "fert_cert", "pest_herb", "inorg_fert",
+                "org_fert",
+                "erosion", "any_extension",
+                "long_rainy_irrigation",
+                "short_rainy_irrigation", "tenure")
+
+for(i in tf.cols){
+    print(i)
+    ag[, i] <- as.numeric(ag[,i]*1)
+}
+
+
+made.cols.numeric <- c( "crop_div", "simpson.div",
+                       "prop_education", "profit",   "profit",
+                       "total_div", "prop_pot_labor",   "total_crop_area")
+
+for(i in made.cols.numeric){
+    ag[, i] <- as.numeric(ag[,i])
+}
+
+
+## *****************************************************************
+
+
+### columns to take the mean across a HH
+
+cols.to.av <- c("any_div", "ext_input", "no_inputs",
+                "crop_rotation", "intercrop",  "livestock_int",
+                "fert_cert", "pest_herb", "inorg_fert",
+                "org_fert",
+                "erosion",
+                "long_rainy_irrigation",
+                "short_rainy_irrigation",
+                "total_div", "total_paid_wages", "tenure")
+
+ag.hh <- aggregate(ag[,cols.to.av],
+                   list(Household.ID=ag$Household.ID,
+                                        Round=ag$Round),
+                   mean, na.rm=TRUE)
+
+## *****************************************************************
+
 
 made.cols.factor <- c("any_div", "ext_input", "no_inputs",
                       "crop_rotation", "intercrop",  "livestock_int",
@@ -415,9 +478,6 @@ made.cols.factor <- c("any_div", "ext_input", "no_inputs",
                       "erosion",
                       "tenure",
                       "Country",  "Landscape..",
-                      "org_fert",
-                      "inorg_fert",
-                      "pest_herb",
                       "long_rainy_org_fert_type",
                       "long_rainy_inorg_fert_type",
                       "short_rainy_org_fert_type",
@@ -436,7 +496,8 @@ made.cols.factor <- c("any_div", "ext_input", "no_inputs",
                       "short_rainy_irrigation_type",
                       "long_rainy_eros_type",
                       "short_rainy_eros_type",
-                      "short_rainy_field_water_source", "long_rainy_field_water_source")
+                      "short_rainy_field_water_source",
+                      "long_rainy_field_water_source")
 
 for(i in made.cols.factor){
     ag[, i] <- as.factor(ag[,i])
@@ -459,7 +520,7 @@ levels(ag$water_source_rainy) <- levels(ag$water_source_dry) <-
 
 levels(ag$long_rainy_pest_herb_type) <-
     levels(ag$short_rainy_pest_herb_type) <-
-    c("None", 'Pesticide', 'Herbicide','Fungicide')
+    c("None", 'Pesticide', 'Herbicide','Fungicide', "Other")
 
 levels(ag$long_rainy_org_fert_type) <-  levels(ag$short_rainy_org_fert_type) <-
     c("None", 'Crop Residue', 'Animal Manure', 'Natural Fallow',
@@ -479,22 +540,33 @@ levels(ag$long_rainy_eros_type) <-
       'Vetiver Grass', 'Tree Belts', 'Water Harvest Bunds', 'Drainage Ditches', 'Dam')
 
 
-made.cols.numeric <- c( "crop_div", "simpson.div",
-                       "prop_education", "profit",   "total_paid_wages",
-                       "total_div", "prop_pot_labor",   "total_crop_area")
+## *****************************************************************
 
-for(i in made.cols.numeric){
-    ag[, i] <- as.numeric(ag[,i])
-}
+keep.same <- c("prop_education","profit","crop_div",
+               "simpson.div",
+               "total_crop_area", "prop_pot_labor",
+               "water_source_rainy", "extension",
+                       "water_source_dry",
+                      "water_insecurity",
+                      "electricity_source",
+                      "lighting_fuel",
+                      "cooking_fuel", "total_crop_rich", "hh_ind")
 
-## there is one farm that is way too big
-ag$total_crop_area[ag$total_crop_area ==
-                   max(ag$total_crop_area, na.rm=TRUE)] <- NA
+ag.hh <- cbind(ag.hh, ag[,keep.same][match(ag.hh$Household.ID,
+                                           ag$Household.ID),])
 
-ag$crop_div[ag$crop_div ==
-            min(ag$crop_div, na.rm=TRUE)] <- NA
+## food insecurity
 
-ag$prop_pot_labor[ag$prop_pot_labor ==
-                   min(ag$prop_pot_labor, na.rm=TRUE)] <- NA
+fs <- read.csv("~/Dropbox/vitalSigns/data/joinedData/FoodSecurity_HH.csv")
+
+fs <- cbind(fs, ag.hh[match(paste0(fs$Household.ID, fs$Round),
+                       paste0(ag.hh$Household.ID,
+                              ag.hh$Round)),])
+
+fs$Landscape.. <- as.factor(paste0(fs$Country, fs$Landscape..))
+
 
 save(ag, file=file.path(save.dir, "ag.Rdata"))
+
+
+save(fs, file=file.path(save.dir, "fs.Rdata"))
