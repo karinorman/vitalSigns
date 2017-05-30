@@ -1,6 +1,7 @@
 rm(list=ls())
 setwd("~/Dropbox/vitalSigns/analysis/vital_signs")
 library(dplyr)
+library(lucr)
 library(lubridate)
 save.dir <- "../../saved/survey"
 
@@ -15,6 +16,8 @@ ind <- read.csv("~/Dropbox/vitalSigns/data/Agricultural - Household/hh_data/hh_s
 hh <-
     read.csv("~/Dropbox/vitalSigns/data/joinedData/hh.csv")
 
+yield <- read.csv("~/Dropbox/vitalSigns/data/Yields_Combine_export.csv")
+
 ag$Landscape.. <- paste0(ag$Country, ag$Landscape..)
 
 to.replace <-  c("ag3a_14", ## tenure
@@ -26,7 +29,8 @@ to.replace <-  c("ag3a_14", ## tenure
                  "ag3a_26", ## fertilizer certificate
                  "ag3a_38_3", "ag3a_38_6", "ag3a_38_64", "ag3a_38_9", ##wages
                  "ag4a_04", ## intercropping
-                 "ag3a_09", "ag3a_10", "ag3a_11") ##irrigation/water
+                 "ag3a_09", "ag3a_10", "ag3a_11", ##irrigation/water
+                 "ag4a_15",  "ag4a_15_unit","ag4a_16") #crop yield
 
 to.replace <- c(paste("long_rainy_", to.replace, sep=""),
                 paste("short_rainy_", to.replace, sep=""),
@@ -41,7 +45,8 @@ practices <- c("tenure",
                "fert_cert", "wages_landprep", "wages_weeding",
                "wages_non-harvest", "wages_harvesting",
                "intercrop",
-               "irrigation", "irrigation_type", "field_water_source")
+               "irrigation", "irrigation_type", "field_water_source",
+               "yield", "yield_unit", "crop_value")
 
 colnames(ag)[match(to.replace, colnames(ag))] <-
     c(paste("long_rainy_",
@@ -49,6 +54,42 @@ colnames(ag)[match(to.replace, colnames(ag))] <-
       paste("short_rainy_", practices, sep=""),
       "livestock_int",
       "GPS_area")
+
+## *****************************************************************
+## yield
+ag$long_rainy_yield_area <- ag$long_rainy_yield/ag$GPS_area
+ag$short_rainy_yield_area <- ag$short_rainy_yield/ag$GPS_area
+
+ag$Date <- date(ag$Date)
+
+# cur.year <- historic_currency(dates=unique(ag$Date[!is.na(ag$Date)]),
+#                               key="7c415c728109467ab0b6861016e03780")
+# 
+# save(cur.year, file=file.path(save.dir, 'cur_year.Rdata'))
+
+load(file.path(save.dir, '../survey/cur_year.Rdata'))
+
+names(cur.year) <- unique(ag$Date[!is.na(ag$Date)])
+
+currencies.to.get <- c("TZS", "UGX", "RWF", "GHS")
+
+unique.cur <- t(sapply(cur.year, function(x){
+    unlist(x$rates[names(x$rates) %in% currencies.to.get])
+}))
+
+ag$currency <- "GHS"
+ag$currency[ag$Country == "TZA"] <- "TZS"
+ag$currency[ag$Country == "RWA"] <- "RWF"
+ag$currency[ag$Country == "UGA"] <- "UGX"
+
+ag <- cbind(ag, unique.cur[match(ag$Date,
+                                 date(rownames(unique.cur))),])
+
+ag$to_convert <- apply(ag, 1, function(x) x[x["currency"]])
+
+ag$long_rainy_crop_value_area<- ag$long_rainy_crop_value/as.numeric(ag$to_convert)/
+    ag$GPS_area
+ag$short_rainy_crop_value_area <- ag$short_rainy_crop_value/as.numeric(ag$to_convert)/ag$GPS_area
 
 ## *****************************************************************
 ## if the farm uses tree belts for erosion control in either season
@@ -356,6 +397,39 @@ hh.profit <- tapply(secE$hh_e65_1, sec3$Household.ID,
 ag$profit <- hh.profit[match(ag$Household.ID, names(hh.profit))]
 
 ## *****************************************************************
+## population density data
+## *****************************************************************
+load(file.path(save.dir, '../spatial/gha_popstats.rdata'))
+load(file.path(save.dir, '../spatial/rwa_popstats.rdata'))
+load(file.path(save.dir, '../spatial/tanz_popstats.rdata'))
+load(file.path(save.dir, '../spatial/ug_popstats.rdata'))
+
+gha.pop <- t(as.data.frame(popstats.mult.gha, stringsAsFactors = FALSE))
+gha.pop <- as.data.frame(gha.pop, stringsAsFactors = FALSE)
+gha.pop$Country <- "GHA"
+
+rwa.pop <- t(as.data.frame(popstats.mult.rwa, stringsAsFactors = FALSE))
+rwa.pop <- as.data.frame(rwa.pop, stringsAsFactors = FALSE)
+rwa.pop$Country <- "RWA"
+
+tza.pop <- t(as.data.frame(popstats.mult.tanz, stringsAsFactors = FALSE))
+tza.pop <- as.data.frame(tza.pop, stringsAsFactors = FALSE)
+tza.pop$Country <- "TZA"
+
+uga.pop <- t(as.data.frame(popstats.mult.ug, stringsAsFactors = FALSE))
+uga.pop <- as.data.frame(uga.pop, stringsAsFactors = FALSE)
+uga.pop$Country <- "UGA"
+
+all.pop.stats <- rbind(gha.pop, rwa.pop, tza.pop, uga.pop, stringsAsFactors = FALSE)
+names(all.pop.stats)[names(all.pop.stats) == 'V1'] <- 'pop_density'
+
+all.pop.stats$Landscape <- lapply(strsplit(rownames(all.pop.stats), split="\\."), function(x) x[1])
+
+ag <- cbind(ag, all.pop.stats[ , -c(2)][match(ag$Landscape..,
+                                             paste0(all.pop.stats$Country,
+                                                    all.pop.stats$Landscape)), ])
+
+## *****************************************************************
 ## spatial data
 ## *****************************************************************
 
@@ -405,6 +479,9 @@ ag <- cbind(ag,
 
 ## code "bush" as "no toilet" (1)
 
+## *****************************************************************
+## join yield and ag data
+
 
 
 ## *****************************************************************
@@ -430,7 +507,11 @@ tf.cols <- c("any_div", "ext_input", "no_inputs",
                 "org_fert",
                 "erosion", "any_extension",
                 "long_rainy_irrigation",
-                "short_rainy_irrigation", "tenure")
+             "short_rainy_irrigation", "tenure",
+             "long_rainy_crop_value_area",
+             "short_rainy_crop_value_area",
+             "long_rainy_yield_area", "short_rainy_yield_area",
+             "pop_density")
 
 for(i in tf.cols){
     print(i)
@@ -459,7 +540,10 @@ cols.to.av <- c("any_div", "ext_input", "no_inputs",
                 "erosion",
                 "long_rainy_irrigation",
                 "short_rainy_irrigation",
-                "total_div", "total_paid_wages", "tenure")
+                "total_div", "total_paid_wages", "tenure",
+                "long_rainy_crop_value_area",
+                "short_rainy_crop_value_area",
+             "long_rainy_yield_area", "short_rainy_yield_area")
 
 ag.hh <- aggregate(ag[,cols.to.av],
                    list(Household.ID=ag$Household.ID,
