@@ -72,7 +72,7 @@ for(i in 1:length(practice.forest)){
 library(forestFloor)
 
 for(i in 1:length(practice.forest)){
-    quartz(height=11)
+    X11(height=11)
     ff <- forestFloor(practice.forest[[i]],
                       ag.dev[[i]],
                       calc_np=TRUE)
