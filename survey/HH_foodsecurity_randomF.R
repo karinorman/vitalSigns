@@ -35,7 +35,11 @@ xvars <- c("tenure",
            "long_rainy_irrigation",
            "water_source_rainy",
            "water_source_dry",
-           "water_insecurity")
+           "water_insecurity",
+           "long_rainy_crop_value_area",
+           "short_rainy_crop_value_area",
+           "long_rainy_yield_area", "short_rainy_yield_area",
+           "pop_density")
 
 
 formulas.tree <-lapply(ys, function(x) {
@@ -89,6 +93,6 @@ for(i in 1:length(practice.forest)){
                       calc_np=TRUE)
     Col <- fcol(ff, cols=1, outlier.lim = 2.5)
     pdf.f(f, file.path(sprintf("figures/foodInsecurity/%s/%s.pdf",
-    keep.RWA, ys[i])),
+                               keep.RWA, ys[i])),
           height=11)
 }
