@@ -56,6 +56,7 @@ farm <- na.omit(read.csv('landscape.csv'))
 tanz.farm <- farm[farm$country == "TZA",]
 gha.farm <- farm[farm$country == "GHA",]
 ug.farm <- farm[farm$country == "UGA",]
+rw.farm <- farm[farm$country == "RWA",]
 
 tanz <- readGDAL("data/tz_tm1-57palglobdem_landcover.dat") 
 tanz <- raster(tanz)
@@ -65,6 +66,8 @@ gha <- raster(gha)
 
 ug <- readGDAL("data/ug_tm1-57palglobdem_landcover.dat")
 ug <- raster(ug)
+
+rw <- raster("data/ESACCI-LC-L4-LCCS-Map-300m-P1Y-2015-v2.0.7.nc")
 
 #Test Function
 ##test.farm <- tanz.farm[2,]
@@ -94,3 +97,10 @@ spstats.mult.ug <- lapply(1:nplot, calcSpStats, d = buff,
                             plt = ug.farm, plt.name = 'description', rast =  ug)
 names(spstats.mult.ug) <- ug.farm$description
 save(spstats.mult.ug, file = "output/ug_stats.rdata")
+
+#Rwanda Analysis
+nplot <- nrow(rw.farm)
+spstats.mult.rw <- lapply(1:nplot, calcSpStats, d = buff,
+                          plt = rw.farm, plt.name = 'description', rast =  rw)
+names(spstats.mult.rw) <- rw.farm$description
+save(spstats.mult.rw, file = "output/rw_stats.rdata")
