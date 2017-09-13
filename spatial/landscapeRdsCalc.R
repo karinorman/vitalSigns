@@ -1,54 +1,69 @@
 rm(list=ls())
 setwd("~/Dropbox/vitalSigns/analysis/vital_signs/spatial")
+ncores <- 4
 source('src/initializeRds.R')
 
 buff <- seq(1000, 3000, by=1000)
 crs <-  "+proj=utm +zone=37 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+crs_vs <- crs(vs_countries)
 
-## Tanzania Analysis
+#### Load in extracted_roads
+load("~/Dropbox/vitalSigns/saved/spatial/extracted_roads.Rdata")
+## roads_in_vs is a matrix (long x lat)
+
+#### add column to matrix so can use rasterFromXYZ
+z <- as.vector(rep(1, len = nrow(roads_in_vs)))
+roads_in_vs <- cbind(roads_in_vs, z)
+colnames(roads_in_vs) <- c("x", "y", "layer")
+roads_in_vs <- as.data.frame(as.table(roads_in_vs)) ## not enough space to do this
+
+#### convert matrix to raster
+#### rd <- rasterFromXYZ(roads_in_vs, crs = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+rd <- rasterFromXYZ(roads_in_vs, crs = crs_vs)
+
+
+#### Tanzania Analysis
 nplot <- nrow(tanz.farm)
-tanz <- projectRaster(tanz, crs = crs, method = 'ngb')
-popstats.mult.tanz <- lapply(1:nplot, calcRdsStats, d = buff,
+roadstats.mult.tanz <- lapply(1:nplot, calcRdsStats, d = buff,
                             plt = tanz.farm,
-                            rast =  tanz)
-names(popstats.mult.tanz) <- tanz.farm$landscape_no
+                            rast =  vs_rd_coord)
+names(roadstats.mult.tanz) <- tanz.farm$landscape_no
 
 
-save(popstats.mult.tanz,
-     file = file.path(save.path, 'tanz_popstats.rdata'))
+save(roadstats.mult.tanz,
+     file = file.path(save.path, 'tanz_roadstats.rdata'))
 
-## Ghana Analysis
+#### Ghana Analysis
 nplot.gha <- nrow(gha.farm)
-gha <- projectRaster(gha, crs = crs, method = 'ngb')
-popstats.mult.gha <- lapply(1:nplot.gha, calcRdsStats, d = buff,
+roadstats.mult.gha <- lapply(1:nplot.gha, calcRdsStats, d = buff,
                             plt = gha.farm,
-                            rast =  gha)
-names(popstats.mult.gha) <- gha.farm$landscape_no
+                            rast =  vs_rd_coord)
+names(roadstats.mult.gha) <- gha.farm$landscape_no
 
-save(popstats.mult.gha,
-     file = file.path(save.path, 'gha_popstats.rdata'))
+save(roadstats.mult.gha,
+     file = file.path(save.path, 'gha_roadstats.rdata'))
 
-## Uganda Analysis
+#### Uganda Analysis
 nplot.ug <- nrow(ug.farm)
-ug <- projectRaster(ug, crs = crs, method = 'ngb')
-popstats.mult.ug <- lapply(1:nplot.ug, calcRdsStats, d = buff,
+roadstats.mult.ug <- lapply(1:nplot.ug, calcRdsStats, d = buff,
                           plt = ug.farm,
-                          rast =  ug)
-names(popstats.mult.ug) <- ug.farm$landscape_no
+                          rast =  vs_rd_coord)
+names(roadstats.mult.ug) <- ug.farm$landscape_no
 
-save(popstats.mult.ug,
-     file = file.path(save.path, 'ug_popstats.rdata'))
+save(roadstats.mult.ug,
+     file = file.path(save.path, 'ug_roadstats.rdata'))
 
-## Rwanda Analysis
+#### Rwanda Analysis
 nplot.rwa <- nrow(rwa.farm)
-rwa <- projectRaster(rwa, crs = crs, method = 'ngb')
-popstats.mult.rwa <- lapply(1:nplot.rwa, calcRdsStats, d = buff,
+roadstats.mult.rwa <- lapply(1:nplot.rwa, calcRdsStats, d = buff,
                             plt = rwa.farm,
-                            rast = rwa)
-names(popstats.mult.rwa) <- rwa.farm$landscape_no
+                            rast = vs_rd_coord)
+names(roadstats.mult.rwa) <- rwa.farm$landscape_no
 
-save(popstats.mult.rwa,
-     file = file.path(save.path, 'rwa_popstats.rdata'))
+save(roadstats.mult.rwa,
+     file = file.path(save.path, 'rwa_roadstats.rdata'))
+
+#### incomplete code
 
 
 
