@@ -1,6 +1,3 @@
-# rm(list=ls())
-# setwd("~/Dropbox/vitalSigns/analysis/vital_signs")
-# save.dir <- "../../saved/survey"
 
 getData <- function(data.name, file.list, data.dir){
   dats <- paste(data.dir, file.list[grepl(data.name, file.list)],
