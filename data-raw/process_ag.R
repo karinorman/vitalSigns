@@ -7,13 +7,14 @@ library(lubridate)
 ## *****************************************************************
 
 ag <- read.csv("~/Dropbox/vitalSigns/data/joinedData/ag_field.csv")
-extension <-
-    read.csv("~/Dropbox/vitalSigns/data/joinedData/ag_extension.csv")
-ind <- read.csv("~/Dropbox/vitalSigns/data/Agricultural - Household/hh_data/hh_secB.csv")
-hh <-
-    read.csv("~/Dropbox/vitalSigns/data/joinedData/hh.csv")
 
-yield <- read.csv("~/Dropbox/vitalSigns/data/Yields_Combine_export.csv")
+extension <- read.csv("~/Dropbox/vitalSigns/data/joinedData/ag_extension.csv")
+
+ind <- read.csv(system.file("extdata/survey/hh_data", "hh_secB.csv", package = "vitalSigns"))
+
+hh <- read.csv("~/Dropbox/vitalSigns/data/joinedData/hh.csv")
+
+yield <- read.csv(system.file("extdata", "Yields_Combine_export.csv", package = "vitalSigns"))
 
 ag$Landscape.. <- paste0(ag$Country, ag$Landscape..)
 
@@ -377,7 +378,7 @@ ag <- cbind(ag,
 
 
 ## educated inviduals
-sec3 <- read.csv("../../data/Agricultural - Household/hh_data/hh_secC.csv")
+sec3 <- read.csv(system.file("extdata/survey/hh_data", "hh_secC.csv", package = "vitalSigns"))
 sec3$hh_c03[sec3$hh_c03 == 2] <- 0
 
 hh.edu <- tapply(sec3$hh_c03, sec3$Household.ID,
@@ -387,7 +388,7 @@ ag$educated <- hh.edu[match(ag$Household.ID, names(hh.edu))]
 
 ag$prop_education <- ag$educated/ag$hh_ind
 
-secE <- read.csv("../../data/Agricultural - Household/hh_data/hh_secE.csv")
+secE <- read.csv(system.file("extdata/survey/hh_data", "hh_secE.csv", package = "vitalSigns"))
 hh.profit <- tapply(secE$hh_e65_1, sec3$Household.ID,
                     sum, na.rm=TRUE)
 
