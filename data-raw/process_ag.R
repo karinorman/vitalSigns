@@ -1,9 +1,6 @@
-rm(list=ls())
-setwd("~/Dropbox/vitalSigns/analysis/vital_signs")
 library(dplyr)
 library(lucr)
 library(lubridate)
-save.dir <- "../../saved/survey"
 
 ## *****************************************************************
 ## ag. data
@@ -650,9 +647,6 @@ fs <- cbind(fs, ag.hh[match(paste0(fs$Household.ID, fs$Round),
 fs$Landscape.. <- as.factor(paste0(fs$Country, fs$Landscape..))
 
 
-save(ag, file=file.path(save.dir, "ag.Rdata"))
-
-
-save(fs, file=file.path(save.dir, "fs.Rdata"))
-
+usethis::use_data(ag)
+usethis::use_data(fs)
 
