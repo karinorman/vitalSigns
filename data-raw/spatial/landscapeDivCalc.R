@@ -20,6 +20,8 @@ spstats.mult.tanz <- lapply(1:nplot, calcSpStats, d = buff,
 names(spstats.mult.tanz) <- tanz.farm$landscape_no
 sum.tanz <- lapply(spstats.mult.tanz, calcLandStats)
 
+save(spstats.mult.tanz, sum.tanz,
+     file = 'data/int/tanz_stats.rdata')
 
 ## Ghana Analysis
 nplot.gha <- nrow(gha.farm)
@@ -32,6 +34,9 @@ names(spstats.mult.gha) <- gha.farm$landscape_no
 
 sum.gha <- lapply(spstats.mult.gha, calcLandStats)
 
+save(spstats.mult.gha, sum.gha,
+     file = 'data/int/gha_stats.rdata')
+
 ## Uganda Analysis
 nplot.ug <- nrow(ug.farm)
 ug <- projectRaster(ug, crs = crs, method = 'ngb')
@@ -41,6 +46,9 @@ spstats.mult.ug <- lapply(1:nplot.ug, calcSpStats, d = buff,
 names(spstats.mult.ug) <- ug.farm$landscape_no
 
 sum.ug <- lapply(spstats.mult.ug, calcLandStats)
+
+save(spstats.mult.ug, sum.ug,
+     file = 'data/int/ug_stats.rdata')
 
 ###### Combine Country Stats ##########
 

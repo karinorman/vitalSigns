@@ -65,7 +65,7 @@ ag$Date <- date(ag$Date)
 # 
 # save(cur.year, file=file.path(save.dir, 'cur_year.Rdata'))
 
-load(file.path(save.dir, '../survey/cur_year.Rdata'))
+load('data/int/cur_year.Rdata')
 
 names(cur.year) <- unique(ag$Date[!is.na(ag$Date)])
 
@@ -397,10 +397,10 @@ ag$profit <- hh.profit[match(ag$Household.ID, names(hh.profit))]
 ## *****************************************************************
 ## population density data
 ## *****************************************************************
-load(file.path(save.dir, '../spatial/gha_popstats.rdata'))
-load(file.path(save.dir, '../spatial/rwa_popstats.rdata'))
-load(file.path(save.dir, '../spatial/tanz_popstats.rdata'))
-load(file.path(save.dir, '../spatial/ug_popstats.rdata'))
+load('data/int/gha_popstats.rdata')
+load('data/int/rwa_popstats.rdata')
+load('data/int/tanz_popstats.rdata')
+load('data/int/ug_popstats.rdata')
 
 gha.pop <- t(as.data.frame(popstats.mult.gha, stringsAsFactors = FALSE))
 gha.pop <- as.data.frame(gha.pop, stringsAsFactors = FALSE)
@@ -431,9 +431,9 @@ ag <- cbind(ag, all.pop.stats[ , -c(2)][match(ag$Landscape..,
 ## spatial data
 ## *****************************************************************
 
-load(file.path(save.dir, '../spatial/tanz_stats.rdata'))
-load(file.path(save.dir, '../spatial/gha_stats.rdata'))
-load(file.path(save.dir, '../spatial/ug_stats.rdata'))
+load('data/int/tanz_stats.rdata')
+load('data/int/gha_stats.rdata')
+load('data/int/ug_stats.rdata')
 
 getSpatialDiv <- function(spStats,
                           d,

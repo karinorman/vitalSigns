@@ -10,7 +10,7 @@ data.path <- '~/Documents/pop_density/'
 save.path <- '~/Dropbox/vitalSigns/saved/spatial/'
 
 ## Read in landscape data
-farm <- na.omit(read.csv(file.path(data.path,'landscape.csv')))
+farm <- na.omit(read.csv(system.file("extdata/spatial", 'landscape.csv', package = "vitalSigns")))
 tanz.farm <- farm[farm$country == "TZA",]
 gha.farm <- farm[farm$country == "GHA",]
 ug.farm <- farm[farm$country == "UGA",]

@@ -14,7 +14,7 @@ popstats.mult.tanz <- lapply(1:nplot, calcPopStats, d = buff,
 names(popstats.mult.tanz) <- tanz.farm$landscape_no
 
 save(popstats.mult.tanz,
-     file = file.path(save.path, 'tanz_popstats.rdata'))
+     file = 'data/int/tanz_popstats.rdata')
 
 ## Ghana Analysis
 nplot.gha <- nrow(gha.farm)
@@ -25,7 +25,7 @@ popstats.mult.gha <- lapply(1:nplot.gha, calcPopStats, d = buff,
 names(popstats.mult.gha) <- gha.farm$landscape_no
 
 save(popstats.mult.gha,
-     file = file.path(save.path, 'gha_popstats.rdata'))
+     file = 'data/int/gha_popstats.rdata')
 
 ## Uganda Analysis
 nplot.ug <- nrow(ug.farm)
@@ -36,7 +36,7 @@ popstats.mult.ug <- lapply(1:nplot.ug, calcPopStats, d = buff,
 names(popstats.mult.ug) <- ug.farm$landscape_no
 
 save(popstats.mult.ug,
-     file = file.path(save.path, 'ug_popstats.rdata'))
+     file = 'data/int/ug_popstats.rdata')
 
 ## Rwanda Analysis
 nplot.rwa <- nrow(rwa.farm)
@@ -47,7 +47,7 @@ popstats.mult.rwa <- lapply(1:nplot.rwa, calcPopStats, d = buff,
 names(popstats.mult.rwa) <- rwa.farm$landscape_no
 
 save(popstats.mult.rwa,
-     file = file.path(save.path, 'rwa_popstats.rdata'))
+     file = 'data/int/rwa_popstats.rdata')
 
 
 
