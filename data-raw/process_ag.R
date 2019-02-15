@@ -63,7 +63,7 @@ ag$Date <- date(ag$Date)
 # cur.year <- historic_currency(dates=unique(ag$Date[!is.na(ag$Date)]),
 #                               key="7c415c728109467ab0b6861016e03780")
 # 
-# save(cur.year, file=file.path(save.dir, 'cur_year.Rdata'))
+# save(cur.year, file= 'data/inst/cur_year.Rdata')
 
 load('data/int/cur_year.Rdata')
 
