@@ -7,19 +7,16 @@ library(raster)
 library(rworldmap)
 
 ### Set paths
-## source('src/CalcRdsStats.R')
-data.path <- '~/Dropbox/vitalSigns/data/spatial/'
-save.path <- '~/Dropbox/vitalSigns/saved/spatial/'
 
 ### Read in road data
 # roads <- readOGR(dsn = "C:/Users/Katherine Siegel/Dropbox/vitalSigns/data/spatial/roads/gROADS-v1-africa-shp",
 #                  layer = "gROADS-v1-africa")
 
-#### Save road data to dropbox
-## save(roads, file = file.path(save.path, "roads.Rdata"))
+#### Save road data to intermediate (int) data folder
+## save(roads, "data/int/roads.Rdata"))
 
 ### Load road data - we did this because the shp of African roads took so long to load
-load("~/Dropbox/vitalSigns/saved/spatial/roads.Rdata")
+load("data/int/roads.Rdata")
 roads <- st_as_sf(roads)
 
 ### Get country maps from rworldmaps-- used this to crop the roads data 
@@ -38,4 +35,4 @@ vs_countries <-  st_transform(vs_countries, crs(roads))
 vs_roads <- st_intersection(roads, vs_countries)
 
 ### Write sf of roads
-st_write(vs_roads, file.path(data.path, "vs_roads.shp"))
+save(vs_roads, file = "data/int/vs_roads.rdata")

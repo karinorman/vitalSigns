@@ -1,10 +1,3 @@
-library(sp)
-library(raster)
-library(spatstat)
-library(maptools)
-library(SDMTools)
-library(rgdal)
-library(data.table)
 source('src/initialize.R')
 
 buff <- seq(1000, 3000, by=1000)
