@@ -1,13 +1,18 @@
-rm(list=ls())
-setwd("~/Dropbox/vitalSigns/analysis/vital_signs/spatial")
-ncores <- 4
-source('src/initializeRds.R')
+library(sp)
+library(sf)
+library(raster)
+library(spatstat)
+library(maptools)
+library(SDMTools)
+library(rgdal)
+library(data.table)
+source('/data-raw/spatial/src/initializeRds.R')
 
 buff <- seq(1000, 3000, by=1000)
 crs <-  "+proj=utm +zone=37 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
 crs_vs <- crs(vs_countries)
 
-#### Load in extracted_roads
+### Open roads
 load("~/Dropbox/vitalSigns/saved/spatial/extracted_roads.Rdata")
 ## roads_in_vs is a matrix (long x lat)
 
