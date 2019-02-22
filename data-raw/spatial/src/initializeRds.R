@@ -1,7 +1,16 @@
 ### Load libraries
 library(tidyverse)
+library(sp)
 library(sf)
-source('src/CalcRdsStats.R')
+library(raster)
+library(spatstat)
+library(maptools)
+library(SDMTools)
+library(rgdal)
+library(data.table)
+library(here)
+
+source(here('data-raw', 'spatial', 'src','CalcRdsStats.R'))
 
 ### Read in geo data for landscapes -- this is the data that the roads will get linked to for the road stats
 farm <- na.omit(read.csv(system.file("extdata/spatial", 'landscape.csv', package = "vitalSigns")))
@@ -11,7 +20,7 @@ ug.farm <- farm[farm$country == "UGA",]
 rwa.farm <- farm[farm$country == "RWA",]
 
 ### Read in road data from road_prep.R
-roads <- load("data/int/vs_roads.shp")
+roads <- load("data/int/vs_roads.rdata")
 
 
 

@@ -1,12 +1,4 @@
-library(sp)
-library(sf)
-library(raster)
-library(spatstat)
-library(maptools)
-library(SDMTools)
-library(rgdal)
-library(data.table)
-source('/data-raw/spatial/src/initializeRds.R')
+source(here('data-raw', 'spatial', 'src', 'initializeRds.R'))
 
 buff <- seq(1000, 3000, by=1000)
 crs <-  "+proj=utm +zone=37 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
