@@ -1,5 +1,3 @@
-rm(list=ls())
-setwd("~/Dropbox/vitalSigns/analysis/vital_signs/spatial")
 source('src/initializePop.R')
 
 buff <- seq(5000, 20000, by=1500)
