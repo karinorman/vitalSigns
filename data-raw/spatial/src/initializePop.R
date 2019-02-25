@@ -17,16 +17,16 @@ ug.farm <- farm[farm$country == "UGA",]
 rwa.farm <- farm[farm$country == "RWA",]
 
 ## Read in population density data for all countries (2010, UN adjusted)
-tanz <- readGDAL(file.path(data.path,'TZA-POP/TZA_popmap10_v2b.tif'))
+tanz <- readGDAL(system.file("extdata/spatial/tan_pop", 'TZA_popmap10_v2b.tif', package = "vitalSigns"))
 tanz <- raster(tanz)
 
-gha <- readGDAL(file.path(data.path,'GHA-POP/GHA10adj_040213.tif'))
+gha <- readGDAL(system.file("extdata/spatial/gha_pop", 'GHA10adj_040213.tif', package = "vitalSigns"))
 gha <- raster(gha)
 
-ug <- readGDAL(file.path(data.path,'UGA-POP/UGA_pph_v2b_2010_UNadj.tif'))
+ug <- readGDAL(system.file("extdata/spatial/uga_pop", 'UGA_pph_v2b_2010_UNadj.tif', package = "vitalSigns"))
 ug <- raster(ug)
 
-rwa <- readGDAL(file.path(data.path,'RWA-POP/RWA_pph_v2b_2010_UNadj.tif'))
+rwa <- readGDAL(system.file("extdata/spatial/rwa_pop", 'RWA_pph_v2b_2010_UNadj.tif', package = "vitalSigns"))
 rwa <- raster(rwa)
 
 

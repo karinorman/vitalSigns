@@ -1,13 +1,11 @@
-rm(list=ls())
 library(randomForest)
 library(lme4)
 library(rpart)
 library(ranger)
-setwd("~/Dropbox/vitalSigns/analysis/vital_signs/survey")
-save.dir <- "../../../saved/survey"
-source("src/runMods.R")
 
-load(file=file.path(save.dir, "ag.Rdata"))
+source(here("analysis", "src", "runMods.R"))
+
+load(here("data", "ag.rda"))
 
 ys <- c("any_div", "ext_input", "no_inputs", "total_div")
 fams <- c(rep("binomial", length(ys) -1), "poisson")

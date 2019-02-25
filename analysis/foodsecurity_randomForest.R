@@ -1,11 +1,11 @@
-rm(list=ls())
 library(randomForest)
 library(RColorBrewer)
 library(forestFloor)
-setwd("~/Dropbox/vitalSigns/analysis/vital_signs/survey")
-save.dir <- "../../../saved/survey"
-source("src/runMods.R")
-load(file=file.path(save.dir, "ag.Rdata"))
+library(here)
+
+source(here("analysis", "src", "runMods.R"))
+
+load(here("data", "ag.rda"))
 ag <- ag[ag$Round == 1,]
 
 keep.RWA <- "wRWA"

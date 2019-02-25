@@ -1,13 +1,10 @@
-rm(list=ls())
 library(randomForest)
 library(lme4)
 library(caret)
 
-setwd("~/Dropbox/vitalSigns/analysis/vital_signs/survey")
-save.dir <- "../../../saved/survey"
-source("src/runMods.R")
+source(here("analysis", "src", "runMods.R"))
 
-load(file=file.path(save.dir, "ag.Rdata"))
+load(here("data", "ag.rda"))
 
 ag <- ag[ag$Round == 1,]
 
